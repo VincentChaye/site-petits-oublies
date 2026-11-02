@@ -1,0 +1,67 @@
+/* Espace interne – compléments à main.css (mêmes jetons, mêmes contrastes AA).
+   Mobile d'abord ; ajustements à 600 / 900 / 1200 px. */
+
+.interne .principal { max-width: 80rem; }
+
+.form-deconnexion { margin: 0; }
+.interne .nav ul { align-items: center; }
+
+/* Tableaux : défilement horizontal focalisable sur petit écran */
+.tableau-defilant { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--bord); border-radius: var(--rayon); background: var(--carte); }
+.tableau-defilant h2 { padding: .75rem 1rem 0; }
+.tableau { width: 100%; border-collapse: collapse; min-width: 34rem; font-size: .9375rem; }
+.tableau th, .tableau td { text-align: left; padding: .625rem .75rem; border-bottom: 1px solid var(--bord); vertical-align: top; }
+.tableau thead th { background: var(--surface); color: var(--texte); }
+.tableau tbody th { font-weight: 600; }
+.tableau a { display: inline-flex; align-items: center; min-height: var(--cible); }
+
+/* Étiquettes (le sens ne repose jamais sur la couleur seule : texte explicite) */
+.etiquette {
+  display: inline-block; padding: .125rem .625rem; border-radius: 999px;
+  background: var(--surface); color: var(--texte); border: 1px solid var(--bord-champ);
+  font-size: .875rem; font-weight: 600; vertical-align: middle;
+}
+.etiquette-attention { background: var(--alerte-fond); color: var(--alerte-texte); border-color: var(--alerte-texte); }
+
+/* File de validation */
+.groupe { margin: 2rem 0; }
+.post { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 1rem; margin: 1rem 0; max-width: 46rem; }
+.post:target { outline: 3px solid var(--focus); outline-offset: 2px; }
+.post-echec { border-color: var(--alerte-texte); border-width: 2px; }
+.post .meta { color: var(--secondaire); margin-bottom: .75rem; }
+.texte-post { white-space: pre-wrap; margin: 0 0 1rem; padding: .75rem 1rem; background: var(--surface); border-left: 4px solid var(--primaire); border-radius: 4px; }
+.erreur-envoi { color: var(--alerte-texte); }
+.post .actions { align-items: flex-start; }
+.post .actions form { flex: 1 1 14rem; }
+.interne .actions .bouton { align-self: flex-start; }
+
+/* Calendrier : liste groupée par jour */
+.jours { list-style: none; margin: 0; padding: 0; }
+.jours > li { margin: 0 0 1.5rem; }
+.jours h2 { border-bottom: 2px solid var(--primaire); padding-bottom: .25rem; text-transform: capitalize; }
+.liste-envois { list-style: none; margin: 0; padding: 0; }
+.envoi { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: .75rem 1rem; margin: 0 0 .75rem; max-width: 46rem; }
+.envoi p { margin: 0 0 .5rem; }
+.envoi .texte-post { margin-bottom: .5rem; }
+
+/* Onglets de soumissions */
+.onglets ul { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.onglets a {
+  display: inline-flex; align-items: center; min-height: var(--cible); padding: 0 1rem;
+  border: 2px solid var(--bord-champ); border-radius: var(--rayon);
+  color: var(--lien); background: var(--carte); font-weight: 600; text-decoration: none;
+}
+.onglets a[aria-current="page"] { background: var(--primaire); border-color: var(--primaire); color: #FFFFFF; }
+
+@media (min-width: 600px) {
+  .post { padding: 1.25rem; }
+}
+
+@media (min-width: 900px) {
+  .tableau { font-size: 1rem; }
+  .post .actions { flex-wrap: nowrap; }
+}
+
+@media (min-width: 1200px) {
+  .interne .principal { padding-left: 2rem; padding-right: 2rem; }
+}

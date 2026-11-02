@@ -1,0 +1,63 @@
+<%
+  /* Formulaire accessible générique.
+     Variables : id (ancre), def (entrée de content/formulaires.json), action (URL POST),
+     champs [{nom, type, rows?, options?, autocomplete?, requis?}],
+     etat {valeurs:{}, erreurs:{champ:message}, envoye:bool, erreurGenerale:bool,
+           messageGeneral:string (motif global : anti-spam, limitation de débit…)},
+     formToken (jeton horodaté), titre (facultatif, remplace def.titre),
+     niveau (niveau de titre, 2 par défaut), cache (valeurs cachées {nom: valeur}). */
+  const _etat = locals.etat || { valeurs: {}, erreurs: {}, envoye: false };
+  const _val = _etat.valeurs || {};
+  const _err = _etat.erreurs || {};
+  const _cles = Object.keys(_err);
+  const _n = locals.niveau || 2;
+  const _hT = 'h' + _n;
+  const _hS = 'h' + (_n + 1);
+%><section class="formulaire" id="<%= id %>" aria-labelledby="<%= id %>-titre">
+  <<%= _hT %> id="<%= id %>-titre"><%= locals.titre || def.titre %></<%= _hT %>>
+<% if (_etat.envoye) { %>  <div class="confirmation" role="status" tabindex="-1" data-focus-initial>
+    <p><%= def.confirmation %></p>
+  </div>
+<% } else { %>  <p><%= def.intro %></p>
+<% if (_cles.length || _etat.erreurGenerale) { %>  <div class="resume-erreurs" role="alert" tabindex="-1" data-focus-initial>
+    <<%= _hS %>><%= def.erreur_generale %></<%= _hS %>>
+<% if (_etat.messageGeneral) { %>    <p><%= _etat.messageGeneral %></p>
+<% } %><% if (_cles.length) { %>    <ul>
+<% _cles.forEach(function (k) { %>      <li><a href="#<%= id %>-<%= k %>"><%= _err[k] %></a></li>
+<% }); %>    </ul>
+<% } %>  </div>
+<% } %>  <form method="post" action="<%= action %>" novalidate data-validation>
+<% if (locals.csrfToken) { %>    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+<% } %>    <input type="hidden" name="_form_token" value="<%= locals.formToken || '' %>">
+<% Object.keys(locals.cache || {}).forEach(function (k) { %>    <input type="hidden" name="<%= k %>" value="<%= cache[k] %>">
+<% }); %>    <div class="piege" aria-hidden="true">
+      <label for="<%= id %>-site_web">Ne pas remplir ce champ</label>
+      <input type="text" id="<%= id %>-site_web" name="site_web" tabindex="-1" autocomplete="off" value="">
+    </div>
+<% champs.forEach(function (c) {
+     const d = def.champs[c.nom];
+     const fid = id + '-' + c.nom;
+     const e = _err[c.nom];
+     const requis = c.requis !== false && !/facultatif/.test(d.label);
+     const desc = [];
+     if (d.aide) desc.push(fid + '-aide');
+     if (e) desc.push(fid + '-erreur');
+%>    <div class="champ<%= c.type === 'checkbox' ? ' champ-case' : '' %><%= e ? ' champ-erreur' : '' %>">
+<% if (c.type === 'checkbox') { %>      <input type="checkbox" id="<%= fid %>" name="<%= c.nom %>" value="oui"<%= _val[c.nom] ? ' checked' : '' %> required data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true" aria-describedby="<%= desc.join(' ') %>"<% } %>>
+      <div>
+        <label for="<%= fid %>"><%= d.label %></label>
+        <p class="erreur" id="<%= fid %>-erreur"<% if (!e) { %> hidden<% } %>><%= e || '' %></p>
+      </div>
+<% } else { %>      <label for="<%= fid %>"><%= d.label %></label>
+<% if (d.aide) { %>      <span class="aide" id="<%= fid %>-aide"><%= d.aide %></span>
+<% } %><% if (c.type === 'textarea') { %>      <textarea id="<%= fid %>" name="<%= c.nom %>" rows="<%= c.rows || 5 %>"<%= requis ? ' required' : '' %> data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true"<% } %><% if (desc.length) { %> aria-describedby="<%= desc.join(' ') %>"<% } %>><%= _val[c.nom] || '' %></textarea>
+<% } else if (c.type === 'select') { %>      <select id="<%= fid %>" name="<%= c.nom %>"<%= requis ? ' required' : '' %> data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true"<% } %><% if (desc.length) { %> aria-describedby="<%= desc.join(' ') %>"<% } %>>
+        <option value=""<%= _val[c.nom] ? '' : ' selected' %>><%= requis ? 'Choisir…' : 'Aucune préférence' %></option>
+<% c.options.forEach(function (o) { %>        <option value="<%= o.valeur %>"<%= _val[c.nom] === o.valeur ? ' selected' : '' %>><%= o.libelle %></option>
+<% }); %>      </select>
+<% } else { %>      <input type="<%= c.type %>" id="<%= fid %>" name="<%= c.nom %>" value="<%= _val[c.nom] || '' %>"<% if (c.autocomplete) { %> autocomplete="<%= c.autocomplete %>"<% } %><%= requis ? ' required' : '' %> data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true"<% } %><% if (desc.length) { %> aria-describedby="<%= desc.join(' ') %>"<% } %>>
+<% } %>      <p class="erreur" id="<%= fid %>-erreur"<% if (!e) { %> hidden<% } %>><%= e || '' %></p>
+<% } %>    </div>
+<% }); %>    <button type="submit" class="bouton"><%= def.envoyer %></button>
+  </form>
+<% } %></section>

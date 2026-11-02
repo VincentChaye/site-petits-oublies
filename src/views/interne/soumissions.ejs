@@ -1,0 +1,35 @@
+<%
+  /* Routes : GET /interne/soumissions?type=<cle> ; GET /interne/soumissions/export.csv?type=<cle> (téléchargement).
+     Variables : types [{cle: 'interet'|'contact'|'benevolat'|'don_parrainage', libelle, total}],
+       type (cle active), colonnes [{cle, libelle}], soumissions [{id, createdAt, valeurs: {cle: texte}}]
+       du plus récent au plus ancien. csrfToken, message (facultatifs). */
+  const _dt = function (iso) { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'Europe/Paris' }); };
+  const _actif = types.find(function (t) { return t.cle === type; }) || types[0];
+%><%- include('partials/debut', { titre: 'Soumissions', ecran: 'soumissions' }) %>
+    <h1>Soumissions des formulaires</h1>
+    <nav class="onglets" aria-label="Type de formulaire">
+      <ul>
+<% types.forEach(function (t) { %>        <li><a href="/interne/soumissions?type=<%= t.cle %>"<% if (t.cle === _actif.cle) { %> aria-current="page"<% } %>><%= t.libelle %> (<%= t.total %>)</a></li>
+<% }); %>      </ul>
+    </nav>
+    <h2><%= _actif.libelle %></h2>
+    <p><a class="bouton bouton-secondaire" href="/interne/soumissions/export.csv?type=<%= _actif.cle %>" download>Exporter en CSV</a></p>
+<% if (soumissions.length === 0) { %>    <p class="etat-vide">Aucune soumission pour ce formulaire.</p>
+<% } else { %>    <div class="tableau-defilant" role="region" aria-label="Soumissions : <%= _actif.libelle %>" tabindex="0">
+      <table class="tableau">
+        <caption class="contenu-cache">Soumissions du formulaire « <%= _actif.libelle %> », les plus récentes d’abord</caption>
+        <thead>
+          <tr>
+            <th scope="col">Reçue le</th>
+<% colonnes.forEach(function (c) { %>            <th scope="col"><%= c.libelle %></th>
+<% }); %>          </tr>
+        </thead>
+        <tbody>
+<% soumissions.forEach(function (s) { %>          <tr>
+            <th scope="row"><time datetime="<%= s.createdAt %>"><%= _dt(s.createdAt) %></time></th>
+<% colonnes.forEach(function (c) { %>            <td><%= s.valeurs[c.cle] == null ? '' : s.valeurs[c.cle] %></td>
+<% }); %>          </tr>
+<% }); %>        </tbody>
+      </table>
+    </div>
+<% } %><%- include('partials/fin') %>

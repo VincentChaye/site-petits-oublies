@@ -1,0 +1,17 @@
+# Secrets et configuration locale
+.env
+
+# Dépendances
+node_modules/
+
+# Données générées à l'exécution (soumissions, vues, posts simulés, journal)
+data/*
+!data/.gitkeep
+
+# Artefacts de test et de système
+test-results/
+playwright-report/
+.DS_Store
+*.log
+*.tmp
+.essaim/

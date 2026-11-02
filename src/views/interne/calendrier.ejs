@@ -1,0 +1,27 @@
+<%
+  /* Route : GET /interne/calendrier.
+     Variables : jours [{date: 'AAAA-MM-JJ', libelle: 'mardi 3 novembre 2026',
+       posts: [{id, animalName, platform, platformLibelle, status, scheduledAt, text}]}]
+       triés par date croissante (statuts planifie, envoye, echec avec date d'envoi).
+     csrfToken, message (facultatifs). */
+  const _st = { planifie: 'Planifié', envoye: 'Envoyé', echec: 'En échec' };
+  const _h = function (iso) { return new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' }); };
+%><%- include('partials/debut', { titre: 'Calendrier des envois', ecran: 'calendrier' }) %>
+    <h1>Calendrier des envois</h1>
+    <p class="intro">Posts approuvés, regroupés par jour d’envoi. Les heures sont données en heure de Paris.</p>
+<% if (jours.length === 0) { %>    <p class="etat-vide">Aucun envoi planifié. Les posts approuvés dans la <a href="/interne/file">file de validation</a> apparaîtront ici.</p>
+<% } else { %>    <ol class="jours">
+<% jours.forEach(function (j) { %>      <li>
+        <section aria-labelledby="jour-<%= j.date %>">
+          <h2 id="jour-<%= j.date %>"><time datetime="<%= j.date %>"><%= j.libelle %></time></h2>
+          <ul class="liste-envois">
+<% j.posts.forEach(function (p) { %>            <li class="envoi">
+              <p><strong><%= _h(p.scheduledAt) %></strong> · <%= p.platformLibelle || p.platform %> · <%= p.animalName %> · <span class="etiquette<%= p.status === 'echec' ? ' etiquette-attention' : '' %>"><%= _st[p.status] || p.status %></span></p>
+              <p class="texte-post"><%= p.text %></p>
+<% if (p.status === 'echec') { %>              <p><a href="/interne/file#post-<%= p.id %>">Voir le post en échec</a></p>
+<% } %>            </li>
+<% }); %>          </ul>
+        </section>
+      </li>
+<% }); %>    </ol>
+<% } %><%- include('partials/fin') %>

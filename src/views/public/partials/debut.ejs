@@ -1,0 +1,68 @@
+<%
+  /* Variables : page {title, meta, url}, baseUrl, actif (accueil|animaux|refuge|contact),
+     fil [{nom, url}] (facultatif), ld [objets JSON-LD] (facultatif), robots (facultatif). */
+  const _base = String(locals.baseUrl || '').replace(/\/$/, '');
+  const _canon = _base + page.url;
+  const _ld = [{
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Refuge des Quatre Vents (site de démonstration)',
+    url: _base + '/',
+    description: 'Refuge fictif utilisé pour une démonstration : aucune structure réelle.'
+  }].concat(locals.ld || []);
+  if (locals.fil && locals.fil.length) {
+    _ld.push({
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: locals.fil.map((e, i) => ({
+        '@type': 'ListItem', position: i + 1, name: e.nom, item: _base + e.url
+      }))
+    });
+  }
+  const _nav = [
+    { cle: 'accueil', nom: 'Accueil', url: '/' },
+    { cle: 'animaux', nom: 'Animaux', url: '/animaux' },
+    { cle: 'refuge', nom: 'Le refuge', url: '/refuge' },
+    { cle: 'contact', nom: 'Contact', url: '/contact' }
+  ];
+%><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= page.title %></title>
+  <meta name="description" content="<%= page.meta %>">
+  <meta name="robots" content="<%= locals.robots || 'index, follow' %>">
+  <link rel="canonical" href="<%= _canon %>">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:title" content="<%= page.title %>">
+  <meta property="og:description" content="<%= page.meta %>">
+  <meta property="og:url" content="<%= _canon %>">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/main.css">
+  <script src="/js/main.js" defer></script>
+<% _ld.forEach(function (o) { %>  <script type="application/ld+json"><%- JSON.stringify(o).replace(/</g, '\\u003c') %></script>
+<% }); %></head>
+<body>
+  <a class="evitement" href="#contenu">Aller au contenu</a>
+  <div class="bandeau-demo" role="note" aria-label="Avertissement">
+    <p>Site de démonstration : le refuge, ses animaux et ses coordonnées sont fictifs.</p>
+  </div>
+  <header class="entete">
+    <div class="entete-interieur">
+      <a class="marque" href="/">Refuge des Quatre Vents</a>
+      <nav class="nav" aria-label="Navigation principale">
+        <ul>
+<% _nav.forEach(function (n) { %>          <li><a href="<%= n.url %>"<% if (locals.actif === n.cle) { %> aria-current="page"<% } %>><%= n.nom %></a></li>
+<% }); %>        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="contenu" class="principal" tabindex="-1">
+<% if (locals.fil && locals.fil.length) { %>    <nav class="fil-ariane" aria-label="Fil d'Ariane">
+      <ol>
+<% locals.fil.forEach(function (e, i) { %>        <li><% if (i < locals.fil.length - 1) { %><a href="<%= e.url %>"><%= e.nom %></a><% } else { %><span aria-current="page"><%= e.nom %></span><% } %></li>
+<% }); %>      </ol>
+    </nav>
+<% } %>

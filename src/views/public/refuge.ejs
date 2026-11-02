@@ -1,0 +1,38 @@
+<%
+  /* Variables : page (pages.refuge), formulaires, baseUrl, animauxDisponibles [{slug, nom}] (pour le parrainage),
+     etatBenevolat et etatDon {valeurs, erreurs, envoye, erreurGenerale} (facultatifs), formToken.
+     Routes POST : /refuge/benevolat et /refuge/don. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Le refuge', url: '/refuge' }];
+  const _ben = [
+    { nom: 'nom', type: 'text', autocomplete: 'name' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'disponibilites', type: 'textarea', rows: 3 },
+    { nom: 'envies', type: 'textarea', rows: 4 },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+  const _don = [
+    { nom: 'nom', type: 'text', autocomplete: 'name' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'type', type: 'select', options: formulaires.don_parrainage.options_type },
+    { nom: 'animal', type: 'select', requis: false, options: (locals.animauxDisponibles || []).map(function (a) { return { valeur: a.slug, libelle: a.nom }; }) },
+    { nom: 'message', type: 'textarea', rows: 4 },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+%><%- include('partials/debut', { actif: 'refuge', fil: _fil, ld: [{
+    '@context': 'https://schema.org',
+    '@type': 'AnimalShelter',
+    name: 'Refuge des Quatre Vents (site de démonstration)',
+    url: baseUrl.replace(/\/$/, '') + '/refuge',
+    description: page.meta
+  }] }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+<% page.sections.forEach(function (s) { %>    <section class="section" id="<%= s.id %>">
+      <h2><%= s.h2 %></h2>
+      <p><%= s.texte %></p>
+<% if (s.cta) { %>      <p><a class="bouton bouton-secondaire" href="<%= s.cta.url %>"><%= s.cta.libelle %></a></p>
+<% } %>    </section>
+<% }); %>
+<%- include('partials/formulaire', { id: 'formulaire-benevolat', def: formulaires.benevolat, action: '/refuge/benevolat', champs: _ben, etat: locals.etatBenevolat }) %>
+<%- include('partials/formulaire', { id: 'formulaire-don', def: formulaires.don_parrainage, action: '/refuge/don', champs: _don, etat: locals.etatDon }) %>
+<%- include('partials/fin') %>

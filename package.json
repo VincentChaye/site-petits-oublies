@@ -1,0 +1,21 @@
+{
+  "name": "site-adoption",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Démo locale d'un site de refuge animalier fictif",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server/index.js",
+    "test": "node --test \"src/security/**/*.test.js\" \"src/integrations/**/*.test.js\" \"tests/**/*.test.js\"",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "ejs": "^3.1.10",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "axe-core": "^4.10.0"
+  }
+}

@@ -1,0 +1,51 @@
+<%
+  /* Route : GET /interne.
+     Variables : seuil (ATTENTION_THRESHOLD, nombre),
+     classement [{rang, slug, nom, espece, consultations, sousSeuil (bool),
+                  relances: [{id, plateforme, statut}]}] trié par consultations décroissantes,
+     csrfToken, message (facultatifs). Un seul classement, aucun autre axe. */
+  const _statuts = { en_validation: 'en validation', planifie: 'planifié', envoye: 'envoyé', echec: 'en échec', rejete: 'rejeté' };
+  const _att = classement.filter(function (a) { return a.sousSeuil; });
+%><%- include('partials/debut', { titre: 'Tableau de bord', ecran: 'tableau' }) %>
+    <h1>Tableau de bord</h1>
+    <p class="intro">Classement des fiches par nombre de consultations, de la plus consultée à la moins consultée. Les fiches sous le seuil de <strong><%= seuil %></strong> consultation<%= seuil > 1 ? 's' : '' %> sont signalées.</p>
+
+<% if (_att.length) { %>    <section class="alerte" aria-labelledby="titre-attention">
+      <h2 id="titre-attention">À surveiller : <%= _att.length %> fiche<%= _att.length > 1 ? 's' : '' %> sous le seuil</h2>
+      <ul>
+<% _att.forEach(function (a) { %>        <li>
+          <strong><%= a.nom %></strong> (<%= a.consultations %> consultation<%= a.consultations > 1 ? 's' : '' %>) –
+<% if (a.relances && a.relances.length) { %>          proposition de relance dans la file :
+<% a.relances.forEach(function (r, i) { %>          <a href="/interne/file#post-<%= r.id %>"><%= r.plateforme %> (<%= _statuts[r.statut] || r.statut %>)</a><%= i < a.relances.length - 1 ? ',' : '' %>
+<% }); %><% } else { %>          aucune relance proposée pour l’instant.
+<% } %>        </li>
+<% }); %>      </ul>
+    </section>
+<% } %>
+<% if (classement.length === 0) { %>    <p class="etat-vide">Aucune fiche à classer pour l’instant.</p>
+<% } else { %>    <h2 id="titre-classement">Classement des fiches par consultations</h2>
+    <div class="tableau-defilant" role="region" aria-labelledby="titre-classement" tabindex="0">
+      <table class="tableau">
+        <caption class="contenu-cache">Fiches classées par consultations décroissantes</caption>
+        <thead>
+          <tr>
+            <th scope="col">Rang</th>
+            <th scope="col">Fiche</th>
+            <th scope="col">Espèce</th>
+            <th scope="col">Consultations</th>
+            <th scope="col">Alerte</th>
+          </tr>
+        </thead>
+        <tbody>
+<% classement.forEach(function (a) { %>          <tr>
+            <td><%= a.rang %></td>
+            <th scope="row"><a href="/animaux/<%= a.slug %>"><%= a.nom %></a></th>
+            <td><%= a.espece %></td>
+            <td><%= a.consultations %></td>
+            <td><% if (a.sousSeuil) { %><span class="etiquette etiquette-attention">Sous le seuil</span><% } else { %><span class="contenu-cache">Aucune</span><% } %></td>
+          </tr>
+<% }); %>        </tbody>
+      </table>
+    </div>
+<% } %>
+<%- include('partials/fin') %>

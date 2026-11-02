@@ -1,0 +1,66 @@
+<%
+  /* Route : GET /interne/file.
+     Actions (POST, redirection vers /interne/file#post-<id>) :
+       /interne/file/:id/approuver (champ facultatif scheduledAt, datetime-local),
+       /interne/file/:id/modifier (champ text), /interne/file/:id/rejeter (champ facultatif reason),
+       /interne/file/:id/reprendre (reprise manuelle d'un échec).
+     Variables : groupes [{plateforme, libelle, active (bool),
+       enValidation: [post], echecs: [post]}], un post = {id, animalId, animalName, trigger, text,
+       createdAt, attempts, lastError: {code, message}|null}.
+       csrfToken, message (facultatifs). */
+  const _decl = { arrivee: 'Nouvelle arrivée', peu_consulte: 'Fiche peu consultée (relance)', relance_periodique: 'Relance périodique' };
+  const _dt = function (iso) { return iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short', timeZone: 'Europe/Paris' }) : ''; };
+  const _total = groupes.reduce(function (n, g) { return n + g.enValidation.length + g.echecs.length; }, 0);
+  const _champCsrf = locals.csrfToken ? '<input type="hidden" name="_csrf" value="' + String(csrfToken).replace(/[&<>"']/g, function (c) { return '&#' + c.charCodeAt(0) + ';'; }) + '">' : '';
+%><%- include('partials/debut', { titre: 'File de validation', ecran: 'file' }) %>
+    <h1>File de validation des publications</h1>
+    <p class="intro">Relisez chaque proposition avant envoi. Toute modification remet le post en validation. Les envois sont simulés.</p>
+<% if (_total === 0) { %>    <p class="etat-vide">Aucun post en attente de validation ni en échec.</p>
+<% } %><% groupes.forEach(function (g) { %>    <section class="groupe" aria-labelledby="plateforme-<%= g.plateforme %>">
+      <h2 id="plateforme-<%= g.plateforme %>"><%= g.libelle %> <span class="etiquette"><%= g.enValidation.length %> à valider<% if (g.echecs.length) { %>, <%= g.echecs.length %> en échec<% } %></span></h2>
+<% if (!g.active) { %>      <p class="alerte" role="note">Cette plateforme n’est pas activée : les posts approuvés échoueront à l’envoi.</p>
+<% } %><% if (g.enValidation.length === 0 && g.echecs.length === 0) { %>      <p>Rien à traiter pour cette plateforme.</p>
+<% } %><% g.echecs.forEach(function (p) { %>      <article class="post post-echec" id="post-<%= p.id %>" aria-labelledby="titre-<%= p.id %>">
+        <h3 id="titre-<%= p.id %>"><%= p.animalName %> – <span class="etiquette etiquette-attention">Échec d’envoi</span></h3>
+        <p class="meta"><%= _decl[p.trigger] || p.trigger %> · <%= p.attempts %> tentative<%= p.attempts > 1 ? 's' : '' %></p>
+<% if (p.lastError) { %>        <p class="erreur-envoi"><strong>Dernière erreur :</strong> <%= p.lastError.message %> (code <%= p.lastError.code %>)</p>
+<% } %>        <blockquote class="texte-post"><%= p.text %></blockquote>
+        <div class="actions">
+          <form method="post" action="/interne/file/<%= p.id %>/reprendre"><%- _champCsrf %>
+            <button type="submit" class="bouton">Reprendre l’envoi</button>
+          </form>
+          <form method="post" action="/interne/file/<%= p.id %>/rejeter" data-confirm="Rejeter définitivement ce post ?"><%- _champCsrf %>
+            <button type="submit" class="bouton bouton-danger">Rejeter</button>
+          </form>
+        </div>
+      </article>
+<% }); %><% g.enValidation.forEach(function (p) { %>      <article class="post" id="post-<%= p.id %>" aria-labelledby="titre-<%= p.id %>">
+        <h3 id="titre-<%= p.id %>"><%= p.animalName %></h3>
+        <p class="meta"><%= _decl[p.trigger] || p.trigger %> · créé le <%= _dt(p.createdAt) %></p>
+        <form method="post" action="/interne/file/<%= p.id %>/modifier"><%- _champCsrf %>
+          <div class="champ">
+            <label for="texte-<%= p.id %>">Texte du post</label>
+            <textarea id="texte-<%= p.id %>" name="text" rows="5" required><%= p.text %></textarea>
+          </div>
+          <button type="submit" class="bouton bouton-secondaire">Enregistrer la modification</button>
+        </form>
+        <div class="actions">
+          <form method="post" action="/interne/file/<%= p.id %>/approuver" class="form-approbation"><%- _champCsrf %>
+            <div class="champ">
+              <label for="date-<%= p.id %>">Envoi prévu le</label>
+              <span class="aide" id="date-<%= p.id %>-aide">Laisser vide pour un envoi dès que possible.</span>
+              <input type="datetime-local" id="date-<%= p.id %>" name="scheduledAt" aria-describedby="date-<%= p.id %>-aide">
+            </div>
+            <button type="submit" class="bouton">Approuver</button>
+          </form>
+          <form method="post" action="/interne/file/<%= p.id %>/rejeter" class="form-rejet" data-confirm="Rejeter ce post ?"><%- _champCsrf %>
+            <div class="champ">
+              <label for="motif-<%= p.id %>">Motif du rejet (facultatif)</label>
+              <input type="text" id="motif-<%= p.id %>" name="reason" maxlength="200">
+            </div>
+            <button type="submit" class="bouton bouton-danger">Rejeter</button>
+          </form>
+        </div>
+      </article>
+<% }); %>    </section>
+<% }); %><%- include('partials/fin') %>

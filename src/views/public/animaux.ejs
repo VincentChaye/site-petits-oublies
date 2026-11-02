@@ -1,0 +1,49 @@
+<%
+  /* Variables : page (pages.animaux), baseUrl, animaux (liste filtrée),
+     filtres {espece, tranche, taille} (chaînes, '' = tous),
+     options {especes:[{valeur,libelle}], tranches:[...], tailles:[...]}. */
+  const _f = locals.filtres || {};
+  const _o = locals.options || { especes: [], tranches: [], tailles: [] };
+  const _actif = !!(_f.espece || _f.tranche || _f.taille);
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Animaux', url: '/animaux' }];
+  const _ld = [{
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: animaux.map((a, i) => ({
+      '@type': 'ListItem', position: i + 1,
+      url: baseUrl.replace(/\/$/, '') + '/animaux/' + a.slug, name: a.nom
+    }))
+  }];
+  const _groupes = [
+    { nom: 'espece', libelle: 'Espèce', liste: _o.especes },
+    { nom: 'tranche', libelle: 'Tranche d’âge', liste: _o.tranches },
+    { nom: 'taille', libelle: 'Taille', liste: _o.tailles }
+  ];
+%><%- include('partials/debut', { actif: 'animaux', fil: _fil, ld: _ld }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+
+    <form class="filtres" method="get" action="/animaux" role="search" aria-label="Filtrer les animaux">
+      <div class="filtres-grille">
+<% _groupes.forEach(function (g) { %>        <div class="champ">
+          <label for="filtre-<%= g.nom %>"><%= g.libelle %></label>
+          <select id="filtre-<%= g.nom %>" name="<%= g.nom %>">
+            <option value="">Tous</option>
+<% g.liste.forEach(function (o) { %>            <option value="<%= o.valeur %>"<%= _f[g.nom] === o.valeur ? ' selected' : '' %>><%= o.libelle %></option>
+<% }); %>          </select>
+        </div>
+<% }); %>      </div>
+      <div class="filtres-actions">
+        <button type="submit" class="bouton">Filtrer</button>
+<% if (_actif) { %>        <a class="bouton bouton-secondaire" href="/animaux">Réinitialiser</a>
+<% } %>      </div>
+    </form>
+
+    <p class="etat-resultats" role="status"><%= animaux.length %> <%= animaux.length > 1 ? 'animaux trouvés' : 'animal trouvé' %></p>
+<% if (animaux.length === 0) { %>    <div class="etat-vide">
+      <p><%= page.vide %></p>
+      <p><a class="bouton" href="/animaux">Voir tous les animaux</a></p>
+    </div>
+<% } else { %>    <ul class="liste-animaux">
+<% animaux.forEach(function (a) { %><%- include('partials/carte-animal', { a: a }) %><% }); %>    </ul>
+<% } %><%- include('partials/fin') %>

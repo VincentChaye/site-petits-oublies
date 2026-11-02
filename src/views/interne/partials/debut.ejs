@@ -1,0 +1,48 @@
+<%
+  /* Variables : titre (string), ecran (cle du menu), sansMenu (bool, écran de connexion),
+     csrfToken (facultatif), message {type: 'succes'|'erreur', texte} (facultatif). */
+  const _menu = [
+    { cle: 'tableau', nom: 'Tableau de bord', url: '/interne' },
+    { cle: 'file', nom: 'File de validation', url: '/interne/file' },
+    { cle: 'calendrier', nom: 'Calendrier', url: '/interne/calendrier' },
+    { cle: 'journal', nom: 'Journal d’envoi', url: '/interne/journal' },
+    { cle: 'soumissions', nom: 'Soumissions', url: '/interne/soumissions' }
+  ];
+%><!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= titre %> – Espace interne (démo)</title>
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/interne.css">
+  <script src="/js/interne.js" defer></script>
+</head>
+<body class="interne">
+  <a class="evitement" href="#contenu">Aller au contenu</a>
+  <div class="bandeau-demo" role="note" aria-label="Avertissement">
+    <p>Espace interne d’un site de démonstration : données fictives, publications simulées.</p>
+  </div>
+  <header class="entete">
+    <div class="entete-interieur">
+      <span class="marque">Espace interne – Refuge des Quatre Vents</span>
+<% if (!locals.sansMenu) { %>      <nav class="nav" aria-label="Navigation de l’espace interne">
+        <ul>
+<% _menu.forEach(function (m) { %>          <li><a href="<%= m.url %>"<% if (locals.ecran === m.cle) { %> aria-current="page"<% } %>><%= m.nom %></a></li>
+<% }); %>          <li>
+            <form method="post" action="/interne/deconnexion" class="form-deconnexion">
+<% if (locals.csrfToken) { %>              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+<% } %>              <button type="submit" class="bouton bouton-secondaire">Se déconnecter</button>
+            </form>
+          </li>
+        </ul>
+      </nav>
+<% } %>    </div>
+  </header>
+  <main id="contenu" class="principal" tabindex="-1">
+<% if (locals.message && message.texte) { %>    <div class="<%= message.type === 'erreur' ? 'resume-erreurs' : 'confirmation' %>" role="<%= message.type === 'erreur' ? 'alert' : 'status' %>" tabindex="-1" data-focus-initial>
+      <p><%= message.texte %></p>
+    </div>
+<% } %>

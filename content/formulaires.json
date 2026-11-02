@@ -1,0 +1,62 @@
+{
+"_note":"Aucun paiement ni adoption en ligne : les formulaires déclenchent une mise en relation humaine.",
+"interet":{
+"titre":"Exprimer son intérêt pour {nom}",
+"intro":"Ce message n'engage à rien. Un membre de l'équipe vous recontacte pour échanger et organiser une rencontre.",
+"champs":{
+"prenom":{"label":"Prénom","aide":"Comment devons-nous vous appeler ?","erreur":"Indiquez votre prénom."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"telephone":{"label":"Téléphone (facultatif)","aide":"Si vous préférez un appel.","erreur":"Ce numéro semble incorrect."},
+"logement":{"label":"Votre logement","aide":"Maison, appartement, jardin… quelques mots suffisent.","erreur":"Décrivez brièvement votre logement."},
+"message":{"label":"Votre message","aide":"Parlez-nous de votre foyer et de ce qui vous attire chez cet animal.","erreur":"Écrivez quelques lignes pour que nous puissions vous répondre."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette demande.","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
+},
+"envoyer":"Envoyer ma demande",
+"confirmation":"Merci, votre demande a bien été enregistrée. L'équipe vous recontactera pour la suite. Rien n'est conclu à ce stade.",
+"erreur_generale":"Votre demande n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
+},
+"contact":{
+"titre":"Nous écrire",
+"intro":"Une question sur le refuge, une visite ou un animal ? Écrivez-nous.",
+"champs":{
+"nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"sujet":{"label":"Sujet","aide":"Par exemple : visite, question sur une fiche.","erreur":"Indiquez le sujet de votre message."},
+"message":{"label":"Message","aide":"Évitez de saisir des données sensibles.","erreur":"Votre message est vide."},
+"consentement":{"label":"J'accepte que mes données servent à me répondre.","aide":"","erreur":"Cochez la case pour envoyer votre message."}
+},
+"envoyer":"Envoyer le message",
+"confirmation":"Merci, votre message a bien été enregistré. Nous vous répondrons dès que possible.",
+"erreur_generale":"Votre message n'a pas pu être envoyé. Vérifiez les champs signalés et réessayez."
+},
+"benevolat":{
+"titre":"Devenir bénévole",
+"intro":"Dites-nous comment vous souhaitez aider. L'équipe vous contacte pour définir ensemble une mission.",
+"champs":{
+"nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"disponibilites":{"label":"Vos disponibilités","aide":"Jours et créneaux approximatifs.","erreur":"Indiquez vos disponibilités."},
+"envies":{"label":"Ce que vous aimeriez faire","aide":"Promenades, soins, accueil, événements…","erreur":"Précisez ce que vous aimeriez faire."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette proposition.","aide":"","erreur":"Cochez la case pour envoyer votre proposition."}
+},
+"envoyer":"Proposer mon aide",
+"confirmation":"Merci pour votre proposition. L'équipe vous recontactera pour en discuter.",
+"erreur_generale":"Votre proposition n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
+},
+"don_parrainage":{
+"titre":"Faire un don ou parrainer un animal",
+"intro":"Aucun paiement n'est possible sur ce site. Ce formulaire sert à vous mettre en relation avec l'équipe, qui vous présentera les modalités.",
+"champs":{
+"nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"type":{"label":"Type de soutien","aide":"Don matériel ou parrainage d'un animal.","erreur":"Choisissez un type de soutien."},
+"animal":{"label":"Animal à parrainer (facultatif)","aide":"Laissez vide si vous n'avez pas de préférence.","erreur":"Cet animal n'est pas disponible."},
+"message":{"label":"Votre message","aide":"Précisez votre idée de don ou de parrainage.","erreur":"Écrivez quelques mots pour préciser votre souhait."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de ce soutien.","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
+},
+"options_type":[{"valeur":"don_materiel","libelle":"Don matériel"},{"valeur":"parrainage","libelle":"Parrainage d'un animal"}],
+"envoyer":"Envoyer ma demande",
+"confirmation":"Merci pour votre geste. L'équipe vous écrira pour expliquer la suite. Aucun paiement n'a été effectué.",
+"erreur_generale":"Votre demande n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
+}
+}

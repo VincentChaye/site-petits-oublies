@@ -1,0 +1,36 @@
+<%
+  /* Route : GET /interne/journal.
+     Variables : entrees [{ts, postId, platform, mode, result ('ok'|'echec'), code, message}]
+       du plus récent au plus ancien (journal en lecture seule, sans secret).
+     csrfToken, message (facultatifs). */
+  const _dt = function (iso) { return new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'medium', timeZone: 'Europe/Paris' }); };
+%><%- include('partials/debut', { titre: 'Journal d’envoi', ecran: 'journal' }) %>
+    <h1>Journal d’envoi</h1>
+    <p class="intro">Chaque tentative d’envoi est consignée, du plus récent au plus ancien. Aucun secret n’y figure.</p>
+<% if (entrees.length === 0) { %>    <p class="etat-vide">Le journal est vide : aucun envoi n’a encore été tenté.</p>
+<% } else { %>    <div class="tableau-defilant" role="region" aria-label="Journal d’envoi" tabindex="0">
+      <table class="tableau">
+        <caption class="contenu-cache">Tentatives d’envoi, du plus récent au plus ancien</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Plateforme</th>
+            <th scope="col">Mode</th>
+            <th scope="col">Résultat</th>
+            <th scope="col">Code</th>
+            <th scope="col">Détail</th>
+          </tr>
+        </thead>
+        <tbody>
+<% entrees.forEach(function (e) { %>          <tr>
+            <th scope="row"><time datetime="<%= e.ts %>"><%= _dt(e.ts) %></time></th>
+            <td><%= e.platform %></td>
+            <td><%= e.mode %></td>
+            <td><span class="etiquette<%= e.result === 'ok' ? '' : ' etiquette-attention' %>"><%= e.result === 'ok' ? 'Réussi' : 'Échec' %></span></td>
+            <td><%= e.code %></td>
+            <td><%= e.message %></td>
+          </tr>
+<% }); %>        </tbody>
+      </table>
+    </div>
+<% } %><%- include('partials/fin') %>

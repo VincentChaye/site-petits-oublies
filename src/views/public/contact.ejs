@@ -1,0 +1,22 @@
+<%
+  /* Variables : page (pages.contact), formulaires, etat {valeurs, erreurs, envoye, erreurGenerale}, formToken, baseUrl.
+     Route POST : /contact. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Contact', url: '/contact' }];
+  const _champs = [
+    { nom: 'nom', type: 'text', autocomplete: 'name' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'sujet', type: 'text' },
+    { nom: 'message', type: 'textarea', rows: 6 },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+%><%- include('partials/debut', { actif: 'contact', fil: _fil }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+    <ul class="contact-liste">
+      <li>Courriel : <%= page.coordonnees.email %></li>
+      <li>Téléphone : <%= page.coordonnees.telephone %></li>
+      <li>Adresse : <%= page.coordonnees.adresse %></li>
+    </ul>
+    <p class="alerte" role="note"><%= page.note %></p>
+<%- include('partials/formulaire', { id: 'formulaire-contact', def: formulaires.contact, action: '/contact', champs: _champs, etat: locals.etat }) %>
+<%- include('partials/fin') %>

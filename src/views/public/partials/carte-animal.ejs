@@ -1,0 +1,19 @@
+<%
+  /* Variables : a (animal), niveau (2 par défaut). */
+  const _p = a.photos && a.photos[0];
+  const _lib = { chien: 'Chien', chat: 'Chat', lapin: 'Lapin' };
+  const _h = 'h' + (locals.niveau || 2);
+%><li>
+  <article class="carte">
+<% if (_p) { %>    <img src="<%= _p.src %>" alt="<%= _p.alt %>" width="400" height="300" loading="lazy" decoding="async">
+<% } %>    <div class="carte-corps">
+      <<%= _h %>><a href="/animaux/<%= a.slug %>"><%= a.nom %></a></<%= _h %>>
+      <ul class="puces">
+        <li><%= _lib[a.espece] || a.espece %></li>
+        <li><%= a.tranche %></li>
+        <li>Taille : <%= a.taille %></li>
+      </ul>
+      <p><%= a.race %>, <%= a.sexe %></p>
+    </div>
+  </article>
+</li>

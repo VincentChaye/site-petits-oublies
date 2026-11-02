@@ -1,0 +1,18 @@
+<%
+  /* Variables : baseUrl, url (chemin demandé, facultatif). Réponse HTTP 404. */
+  const _page = {
+    title: 'Page introuvable – Refuge des Quatre Vents (démo)',
+    meta: 'Cette page n’existe pas ou n’existe plus. Retournez à l’accueil ou parcourez les animaux du refuge de démonstration.',
+    url: locals.url || '/404'
+  };
+%><%- include('partials/debut', { page: _page, actif: '', robots: 'noindex, nofollow' }) %>
+    <div class="texte-page">
+      <h1>Page introuvable</h1>
+      <p>La page demandée n’existe pas ou a été déplacée.</p>
+      <ul class="contact-liste">
+        <li><a href="/">Retourner à l’accueil</a></li>
+        <li><a href="/animaux">Parcourir les animaux</a></li>
+        <li><a href="/contact">Nous contacter</a></li>
+      </ul>
+    </div>
+<%- include('partials/fin') %>

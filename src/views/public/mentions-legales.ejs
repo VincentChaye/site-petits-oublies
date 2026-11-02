@@ -1,0 +1,14 @@
+<%
+  /* Variables : page (pages.mentions_legales), baseUrl. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Mentions légales', url: page.url }];
+%><%- include('partials/debut', { actif: '', fil: _fil }) %>
+    <div class="texte-page">
+      <h1><%= page.h1 %></h1>
+      <p class="alerte" role="note"><%= page.avertissement %></p>
+<% page.sections.forEach(function (s) { %>      <section>
+        <h2><%= s.h2 %></h2>
+        <p><%= s.texte %></p>
+      </section>
+<% }); %>      <p><a href="/">Retour à l’accueil</a></p>
+    </div>
+<%- include('partials/fin') %>

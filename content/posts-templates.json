@@ -1,0 +1,21 @@
+{
+"_variables":["{nom}","{espece}","{url}"],
+"arrivee":{
+"facebook":{"texte":"Nouvelle arrivée au Refuge des Quatre Vents (site de démonstration) : {nom}, {espece}, cherche une famille. Découvrez sa fiche et dites-nous si vous souhaitez le ou la rencontrer : {url}","hashtags":["#adoption","#refuge","#adoptezpasachetez"]},
+"instagram":{"texte":"Bienvenue à {nom} ! Notre nouveau ou nouvelle pensionnaire ({espece}) attend sa famille. Toute l'histoire est sur la fiche : {url}","hashtags":["#adoption","#refuge","#adoptedontachetepas","#animauxaadopter"]},
+"x":{"texte":"Nouvelle arrivée : {nom} ({espece}) cherche une famille. Fiche : {url}","hashtags":["#adoption","#refuge"]},
+"linkedin":{"texte":"Le Refuge des Quatre Vents (structure fictive, démonstration) accueille {nom}, {espece}. Chaque adoption passe par un échange humain avec l'équipe. Fiche détaillée : {url}","hashtags":["#adoption","#bienetreanimal"]}
+},
+"peu_consulte":{
+"facebook":{"texte":"Avez-vous déjà croisé {nom} ? Ce ou cette {espece} attend encore sa famille au Refuge des Quatre Vents (démo). Un coup d'œil à sa fiche peut tout changer : {url}","hashtags":["#adoption","#refuge","#adoptezpasachetez"]},
+"instagram":{"texte":"{nom} mérite qu'on s'y arrête. Ce ou cette {espece} a plein de qualités à vous faire découvrir. Lisez sa fiche : {url}","hashtags":["#adoption","#refuge","#adoptedontachetepas","#coupdecoeur"]},
+"x":{"texte":"{nom} ({espece}) attend toujours une famille. Découvrez sa fiche : {url}","hashtags":["#adoption","#refuge"]},
+"linkedin":{"texte":"Parmi nos animaux, {nom} ({espece}) reste discret et mérite d'être mieux connu. Partagez sa fiche autour de vous : {url}","hashtags":["#adoption","#bienetreanimal"]}
+},
+"relance_periodique":{
+"facebook":{"texte":"Rappel du Refuge des Quatre Vents (démo) : {nom}, {espece}, est toujours disponible à l'adoption. Exprimez votre intérêt, l'équipe vous recontacte : {url}","hashtags":["#adoption","#refuge","#adoptezpasachetez"]},
+"instagram":{"texte":"Toujours là, toujours prêt(e) pour une nouvelle vie : {nom}, {espece}. Retrouvez sa fiche : {url}","hashtags":["#adoption","#refuge","#adoptedontachetepas","#animauxaadopter"]},
+"x":{"texte":"Toujours disponible : {nom} ({espece}). Fiche et contact : {url}","hashtags":["#adoption","#refuge"]},
+"linkedin":{"texte":"Rappel : {nom}, {espece}, est toujours à l'adoption au Refuge des Quatre Vents (structure fictive). Relayer cette annonce peut aider : {url}","hashtags":["#adoption","#bienetreanimal"]}
+}
+}
