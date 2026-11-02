@@ -3,7 +3,7 @@
  * @module security/csv
  */
 
-const DECLENCHEURS = /^[=+\-@\t\r]/;
+const DECLENCHEURS = /^\s*[=+\-@\t\r]/;
 
 /**
  * Échappe un champ CSV : préfixe `'` si la valeur commence par = + - @ tab ou CR,
