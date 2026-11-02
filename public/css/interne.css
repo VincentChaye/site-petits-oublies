@@ -1,7 +1,7 @@
 /* Espace interne – compléments à main.css (mêmes jetons, mêmes contrastes AA).
    Mobile d'abord ; ajustements à 600 / 900 / 1200 px. */
 
-.interne .principal { max-width: 80rem; }
+/* Largeur du contenu : --conteneur (main.css), identique au public. */
 
 .form-deconnexion { margin: 0; }
 .interne .nav ul { align-items: center; }
