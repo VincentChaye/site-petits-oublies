@@ -35,10 +35,10 @@ npm run test:e2e    # lance `playwright test` — voir « Tests » plus bas
 | `GET /refuge` + `POST /refuge/benevolat` `POST /refuge/don` | mission, visites, bénévolat, dons et parrainage |
 | `GET POST /contact` | formulaire de contact |
 | `GET /mentions-legales` `GET /confidentialite` | pages légales |
-| `GET /sitemap.xml` `GET /robots.txt` | référencement (`/interne` exclu) |
+| `GET /sitemap.xml` `GET /robots.txt` | `sitemap.xml` : pages publiques et fiches disponibles (rien de `/interne`). `robots.txt` : fichier statique `public/robots.txt`, qui contient seulement `User-agent: *` et `Disallow: /interne` (pas de ligne `Sitemap:`) |
 | toute autre URL | page 404 en français |
 
-Espace interne, protégé par le secret partagé et interdit à l’indexation :
+Espace interne, protégé par le secret partagé et interdit à l’indexation (`Disallow: /interne` dans `robots.txt`, balise `<meta name="robots" content="noindex, nofollow, noarchive">` dans les pages et en-tête `X-Robots-Tag: noindex` sur toutes les réponses `/interne`) :
 
 | Route | Contenu |
 |---|---|
@@ -96,7 +96,7 @@ type choisi (pour `interet`, `Animal concerné` en premier), puis `Statut` (libe
 `/interne/atelier` permet de rédiger un post pour **Instagram ou Facebook** seulement, à propos
 d'une fiche **disponible** (une fiche adoptée est refusée). Le formulaire peut être prérempli par
 `GET` (`?animal=&reseau=&gabarit=&cadrage=`) depuis `content/posts-templates.json` (gabarits
-`arrivee`, `peu_consulte`, `relance_periodique`). « Aperçu » n'écrit rien ; « Déposer » crée un post
+`arrivee`, `peu_consulte`, `relance_periodique`) avec le bouton « Préremplir avec le gabarit » (étape « 1. Choix de la fiche, du réseau et du gabarit » ; il remplace le texte et les hashtags saisis). « Voir l'aperçu » n'écrit rien ; « Déposer dans la file de validation » crée un post
 `en_validation`, visible dans `/interne/file`. L'image et le lien viennent toujours de la fiche.
 
 | Contrôle | Instagram | Facebook |
@@ -144,7 +144,23 @@ data/           données générées à l'exécution (non suivi par git)
 
 Trois déclencheurs (nouvelle arrivée, fiche peu consultée, relance périodique) proposent
 des posts pour Facebook, Instagram, X et LinkedIn à partir de `content/posts-templates.json`.
+Ce fichier (dossier `content/`) est un objet JSON `{ "_variables": [...], "<déclencheur>": { "<réseau>": { "texte": "...", "hashtags": ["#..."] } } }`
+(variables `{nom}`, `{espece}`, `{url}`) : 12 gabarits, 3 déclencheurs × 4 réseaux. Si l'un manque ou est vide, le serveur
+s'arrête au démarrage ; pour les posts automatiques, les hashtags sont ajoutés à la suite du texte. L'atelier lit les mêmes
+gabarits (texte et hashtags séparés), pour Instagram et Facebook seulement. Les scans automatiques ont lieu toutes les 6 h.
 L'atelier ajoute des posts déposés à la main. Chaque post passe par la file de validation avant un envoi.
+
+**Heure d'envoi** : dans la file, le champ « Envoi prévu le » est **facultatif** (aide : « Laisser vide
+pour un envoi dès que possible »). Vide, l'heure d'envoi est l'instant de l'approbation et l'envoi
+part au prochain passage de l'ordonnanceur (toutes les 30 s). Le message de confirmation
+« Post approuvé : il part à l'heure prévue (envoi simulé). » s'affiche dans les deux cas : sans date
+saisie, « l'heure prévue » désigne donc cet envoi immédiat. Une date saisie est transmise sans fuseau
+explicite (le serveur l'interprète dans son propre fuseau), alors que le calendrier affiche l'heure de Paris.
+
+**Reprises** : après un échec d'envoi, le post est retenté automatiquement jusqu'à 3 fois (délais de
+base, 2× base puis 4× base ; 60 s, 120 s, 240 s par défaut). La 4ᵉ tentative infructueuse
+(1 essai + 3 reprises) passe le post en échec : il apparaît dans la file avec le bouton
+« Reprendre l'envoi » (reprise manuelle).
 
 **L'envoi est toujours simulé** : aucune API de réseau social n'est appelée. Le serveur force le
 mode `simulation` ; si `SOCIAL_MODE` vaut autre chose (par exemple `reel`), la valeur est
@@ -159,30 +175,30 @@ npm run test:e2e    # playwright test
 ```
 
 - `npm test` : 166 tests passaient lors de la rédaction.
-- `npm run test:e2e` : le script existe (Playwright et axe-core sont en devDependencies), mais le
-  dépôt ne contient **ni configuration Playwright ni test de bout en bout** : la commande répond
-  « No tests found ».
-- **Rapport d'accessibilité** : aucun n'est présent dans le dépôt (ni fichier généré, ni test axe
-  exécutable). `playwright-report/` et `test-results/` sont ignorés par git s'ils sont produits.
+- `npm run test:e2e` : **prévu, non disponible**. Le script et les devDependencies Playwright/axe-core
+  existent, mais le dépôt ne contient **aucun `playwright.config.*` ni test de bout en bout**.
+- **Rapport d'accessibilité** : **prévu, non disponible** (ni rapport, ni test axe exécutable dans le dépôt). `playwright-report/` et `test-results/` sont ignorés par git s'ils sont produits.
 
 ## Parcours de démonstration
 
-1. `npm start`, puis `http://localhost:3000/interne/connexion` : saisir `INTERNAL_SECRET`.
+1. `npm start`, puis `http://localhost:3000/interne/connexion` : saisir `INTERNAL_SECRET` dans le champ « Secret », puis « Se connecter ».
 2. Sur le site public, visiter plusieurs fois une fiche (par ex. `/animaux/biscotte`) : chaque
    consultation est comptée (écriture sur disque différée de 5 s).
 3. Sur une fiche disponible, ouvrir `/animaux/:slug/interet` et envoyer le formulaire : la demande
    est enregistrée avec `animalSlug`.
 4. `/interne` : classement par consultations, totaux 7 et 30 jours, demandes par fiche.
-5. `/interne/soumissions` : passer la demande en « En cours » ou « Traitée », ajouter une note,
-   filtrer par statut, puis « Exporter en CSV ».
-6. `/interne/animaux` : modifier une fiche ou basculer son statut adopté/disponible
-   (une fiche adoptée est masquée du catalogue public).
-7. `/interne/atelier` : choisir une fiche, un réseau (Instagram ou Facebook) et un gabarit,
-   cliquer sur « Aperçu », puis « Déposer ».
-8. `/interne/file` : approuver, modifier ou rejeter le post déposé (ou ceux proposés par les scans).
-9. `/interne/calendrier` et `/interne/journal` : suivre l'envoi simulé (l'ordonnanceur traite les
+5. Menu « Soumissions » (`/interne/soumissions`) : passer la demande en « En cours » ou « Traitée » et
+   ajouter une note (bouton « Enregistrer »), filtrer par statut (« Filtrer »), puis « Exporter en CSV ».
+6. Menu « Fiches animaux » (`/interne/animaux`) : « Créer une fiche », modifier une fiche ou la basculer
+   avec « Marquer adopté » / « Marquer disponible » (une fiche adoptée est masquée du catalogue public).
+7. Menu « Atelier de publication » (`/interne/atelier`) : à l'étape « 1. Choix de la fiche, du réseau et du
+   gabarit », choisir une fiche, un réseau (Instagram ou Facebook) et un gabarit (« Texte libre » = aucun), cliquer sur
+   « Préremplir avec le gabarit » ; à l'étape « 2. Rédaction », « Voir l'aperçu », puis « Déposer dans la file de validation ».
+8. Menu « File de validation » (`/interne/file`) : « Enregistrer la modification », « Approuver »
+   (champ facultatif « Envoi prévu le ») ou « Rejeter » le post déposé (ou ceux proposés par les scans).
+9. Menus « Calendrier » et « Journal d'envoi » (`/interne/calendrier`, `/interne/journal`) : suivre l'envoi simulé (l'ordonnanceur traite les
    posts planifiés toutes les 30 s). Pour montrer les reprises, démarrer avec
-   `SOCIAL_SIMULATE_FAILURE=instagram` (ou un autre réseau), puis utiliser « Reprendre » dans la file.
+   `SOCIAL_SIMULATE_FAILURE=instagram` (ou un autre réseau), puis, une fois le post en échec, utiliser « Reprendre l'envoi » dans la file.
 
 Les routes de ces étapes existent dans le code ; l'enchaînement complet n'a pas été rejoué à la
 main pour cette rédaction (les cas couverts sont dans `tests/server/`).
