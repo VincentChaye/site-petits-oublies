@@ -5,6 +5,10 @@
   const _action = creation ? '/interne/animaux/nouveau' : '/interne/animaux/' + encodeURIComponent(slug) + '/modifier';
   const _req = function (c) { return obligatoires.indexOf(c) >= 0; };
   const _err = function (c) { return erreurs && erreurs[c]; };
+  const _esc = function (t) { return String(t).replace(/[&<>"']/g, function (ch) { return '&#' + ch.charCodeAt(0) + ';'; }); };
+  const _attr = function (c) { return _err(c) ? ' aria-invalid="true" aria-describedby="' + c + '-erreur"' : ''; };
+  const _msg = function (c) { return _err(c) ? '<p class="erreur" id="' + c + '-erreur">' + _esc(_err(c)) + '</p>' : ''; };
+  const _cls = function (c) { return _err(c) ? ' champ-erreur' : ''; };
   const _selects = [
     { cle: 'espece', nom: 'Espèce', liste: listes.especes },
     { cle: 'tranche', nom: 'Tranche d’âge', liste: listes.tranches },
@@ -19,56 +23,67 @@
   ];
 %><%- include('partials/debut', { titre: creation ? 'Nouvelle fiche' : 'Modifier la fiche', ecran: 'animaux' }) %>
     <h1><%= creation ? 'Nouvelle fiche animal' : 'Modifier la fiche « ' + slug + ' »' %></h1>
-<% if (Object.keys(erreurs).length) { %>    <div class="resume-erreurs" role="alert" tabindex="-1">
+<% if (Object.keys(erreurs).length) { %>    <div class="resume-erreurs" role="alert" tabindex="-1" data-focus-initial>
       <p>La fiche n’a pas été enregistrée. Corrigez les points suivants :</p>
       <ul>
-<% Object.keys(erreurs).forEach(function (c) { %>        <li><%= erreurs[c] %></li>
+<% Object.keys(erreurs).forEach(function (c) { %>        <li><% if (c.charAt(0) !== '_') { %><a href="#<%= c %>"><%= erreurs[c] %></a><% } else { %><%= erreurs[c] %><% } %></li>
 <% }); %>      </ul>
 <% if (erreurs._version) { %>      <p><a href="/interne/animaux/<%= encodeURIComponent(slug) %>/modifier">Recharger la fiche</a></p>
 <% } %>    </div>
 <% } %>    <form class="formulaire" method="post" action="<%= _action %>">
       <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 <% if (!creation) { %>      <input type="hidden" name="_version" value="<%= version %>">
-<% } %>      <div class="champ">
+<% } %>      <div class="champ<%= _cls('slug') %>">
         <label for="slug">Identifiant (slug), 2 à 60 caractères : a-z, 0-9, tiret <%= creation ? '(définitif)' : '(non modifiable)' %></label>
-        <input type="text" id="slug" name="slug" value="<%= creation ? _v('slug') : slug %>" maxlength="60" <%= creation ? 'required' : 'readonly' %>>
+        <input type="text" id="slug" name="slug" value="<%= creation ? _v('slug') : slug %>" maxlength="60" <%= creation ? 'required' : 'readonly' %><%- _attr('slug') %>>
+        <%- _msg('slug') %>
       </div>
-      <div class="champ">
+      <div class="champ<%= _cls('nom') %>">
         <label for="nom">Nom</label>
-        <input type="text" id="nom" name="nom" value="<%= _v('nom') %>" maxlength="60" required>
+        <input type="text" id="nom" name="nom" value="<%= _v('nom') %>" maxlength="60" required<%- _attr('nom') %>>
+        <%- _msg('nom') %>
       </div>
-<% _selects.forEach(function (s) { %>      <div class="champ">
+<% _selects.forEach(function (s) { %>      <div class="champ<%= _cls(s.cle) %>">
         <label for="<%= s.cle %>"><%= s.nom %></label>
-        <select id="<%= s.cle %>" name="<%= s.cle %>" required>
+        <select id="<%= s.cle %>" name="<%= s.cle %>" required<%- _attr(s.cle) %>>
           <option value="">— choisir —</option>
 <% Object.keys(s.liste).forEach(function (k) { %>          <option value="<%= k %>"<%= _v(s.cle) === k ? ' selected' : '' %>><%= s.liste[k] %></option>
 <% }); %>        </select>
+        <%- _msg(s.cle) %>
       </div>
-<% }); %>      <div class="champ">
+<% }); %>      <div class="champ<%= _cls('race') %>">
         <label for="race">Race</label>
-        <input type="text" id="race" name="race" value="<%= _v('race') %>" maxlength="80" required>
+        <input type="text" id="race" name="race" value="<%= _v('race') %>" maxlength="80" required<%- _attr('race') %>>
+        <%- _msg('race') %>
       </div>
-      <div class="champ">
+      <div class="champ<%= _cls('age') %>">
         <label for="age">Âge (années, entier)</label>
-        <input type="number" id="age" name="age" value="<%= _v('age') %>" min="0" max="99" step="1" required>
+        <input type="number" id="age" name="age" value="<%= _v('age') %>" min="0" max="99" step="1" required<%- _attr('age') %>>
+        <%- _msg('age') %>
       </div>
-      <div class="champ">
+      <div class="champ<%= _cls('dateArrivee') %>">
         <label for="dateArrivee">Date d’arrivée (AAAA-MM-JJ)</label>
-        <input type="date" id="dateArrivee" name="dateArrivee" value="<%= _v('dateArrivee') %>" required>
+        <input type="date" id="dateArrivee" name="dateArrivee" value="<%= _v('dateArrivee') %>" required<%- _attr('dateArrivee') %>>
+        <%- _msg('dateArrivee') %>
       </div>
-<% _textes.forEach(function (t) { %>      <div class="champ">
+<% _textes.forEach(function (t) { %>      <div class="champ<%= _cls(t.cle) %>">
         <label for="<%= t.cle %>"><%= t.nom %></label>
-        <textarea id="<%= t.cle %>" name="<%= t.cle %>" rows="4" maxlength="2000" required><%= _v(t.cle) %></textarea>
+        <textarea id="<%= t.cle %>" name="<%= t.cle %>" rows="4" maxlength="2000" required<%- _attr(t.cle) %>><%= _v(t.cle) %></textarea>
+        <%- _msg(t.cle) %>
       </div>
-<% }); %>      <div class="champ">
+<% }); %>      <div class="champ<%= _cls('photo_src') %>">
         <label for="photo_src">Chemin de la photo (facultatif, commence par /img/)</label>
-        <input type="text" id="photo_src" name="photo_src" value="<%= _v('photo_src') %>" maxlength="200">
+        <input type="text" id="photo_src" name="photo_src" value="<%= _v('photo_src') %>" maxlength="200"<%- _attr('photo_src') %>>
+        <%- _msg('photo_src') %>
       </div>
-      <div class="champ">
+      <div class="champ<%= _cls('photo_alt') %>">
         <label for="photo_alt">Description de la photo (obligatoire si photo)</label>
-        <input type="text" id="photo_alt" name="photo_alt" value="<%= _v('photo_alt') %>" maxlength="300">
+        <input type="text" id="photo_alt" name="photo_alt" value="<%= _v('photo_alt') %>" maxlength="300"<%- _attr('photo_alt') %>>
+        <%- _msg('photo_alt') %>
       </div>
-      <button type="submit" class="bouton">Enregistrer</button>
-      <a href="/interne/animaux">Annuler</a>
+      <div class="actions">
+        <button type="submit" class="bouton">Enregistrer</button>
+        <a class="bouton bouton-secondaire" href="/interne/animaux">Annuler</a>
+      </div>
     </form>
 <%- include('partials/fin') %>

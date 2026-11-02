@@ -13,6 +13,17 @@
 <% }); %>      </ul>
     </nav>
     <h2><%= _actif.libelle %></h2>
+    <form class="formulaire" method="get" action="/interne/soumissions">
+      <input type="hidden" name="type" value="<%= _actif.cle %>">
+      <div class="champ">
+        <label for="filtre-statut">Filtrer par statut</label>
+        <select id="filtre-statut" name="statut">
+          <option value="">Tous</option>
+<% statuts.forEach(function (st) { %>          <option value="<%= st.cle %>"<% if (st.cle === filtre) { %> selected<% } %>><%= st.libelle %></option>
+<% }); %>        </select>
+      </div>
+      <button type="submit" class="bouton bouton-secondaire">Filtrer</button>
+    </form>
     <p><a class="bouton bouton-secondaire" href="/interne/soumissions/export.csv?type=<%= _actif.cle %>" download>Exporter en CSV</a></p>
 <% if (soumissions.length === 0) { %>    <p class="etat-vide">Aucune soumission pour ce formulaire.</p>
 <% } else { %>    <div class="tableau-defilant" role="region" aria-label="Soumissions : <%= _actif.libelle %>" tabindex="0">
@@ -22,13 +33,32 @@
           <tr>
             <th scope="col">Reçue le</th>
 <% colonnes.forEach(function (c) { %>            <th scope="col"><%= c.libelle %></th>
-<% }); %>          </tr>
+<% }); %>            <th scope="col">Suivi</th>
+          </tr>
         </thead>
         <tbody>
 <% soumissions.forEach(function (s) { %>          <tr>
-            <th scope="row"><time datetime="<%= s.createdAt %>"><%= _dt(s.createdAt) %></time></th>
-<% colonnes.forEach(function (c) { %>            <td><%= s.valeurs[c.cle] == null ? '' : s.valeurs[c.cle] %></td>
-<% }); %>          </tr>
+            <th scope="row" data-label="Reçue le"><time datetime="<%= s.createdAt %>"><%= _dt(s.createdAt) %></time></th>
+<% colonnes.forEach(function (c) { %>            <td data-label="<%= c.libelle %>"><%= s.valeurs[c.cle] == null ? '' : s.valeurs[c.cle] %></td>
+<% }); %>            <td id="soumission-<%= s.id %>" data-label="Suivi">
+              <form method="post" action="/interne/soumissions/<%= encodeURIComponent(s.id) %>">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="filtre" value="<%= filtre %>">
+                <div class="champ">
+                  <label for="statut-<%= s.id %>">Statut</label>
+                  <select id="statut-<%= s.id %>" name="statut">
+<% statuts.forEach(function (st) { %>                    <option value="<%= st.cle %>"<% if (st.cle === s.statut) { %> selected<% } %>><%= st.libelle %></option>
+<% }); %>                  </select>
+                </div>
+                <div class="champ">
+                  <label for="note-<%= s.id %>">Note (<%= noteMax %> caractères maximum)</label>
+                  <textarea id="note-<%= s.id %>" name="note" rows="3" maxlength="<%= noteMax %>"><%= s.note %></textarea>
+                </div>
+                <p>Modifiée le <time datetime="<%= s.modifieLe %>"><%= _dt(s.modifieLe) %></time></p>
+                <button type="submit" class="bouton bouton-secondaire">Enregistrer</button>
+              </form>
+            </td>
+          </tr>
 <% }); %>        </tbody>
       </table>
     </div>

@@ -3,26 +3,28 @@
 %><%- include('partials/debut', { titre: 'Fiches animaux', ecran: 'animaux' }) %>
     <h1>Fiches animaux</h1>
     <p><a class="bouton" href="/interne/animaux/nouveau">Créer une fiche</a></p>
-    <table>
-      <caption>Fiches existantes</caption>
-      <thead>
-        <tr><th scope="col">Nom</th><th scope="col">Identifiant</th><th scope="col">Espèce</th><th scope="col">Statut</th><th scope="col">Actions</th></tr>
-      </thead>
-      <tbody>
-<% animaux.forEach(function (a) { %>        <tr>
-          <td><%= a.nom %></td>
-          <td><%= a.slug %></td>
-          <td><%= a.espece %></td>
-          <td><%= statuts[a.statut] || a.statut %></td>
-          <td>
-            <a href="/interne/animaux/<%= encodeURIComponent(a.slug) %>/modifier">Modifier</a>
-            <form method="post" action="/interne/animaux/<%= encodeURIComponent(a.slug) %>/statut">
-              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
-              <input type="hidden" name="_version" value="<%= a.version %>">
-              <button type="submit" class="bouton bouton-secondaire"><%= a.statut === 'disponible' ? 'Marquer adopté' : 'Marquer disponible' %></button>
-            </form>
-          </td>
-        </tr>
-<% }); %>      </tbody>
-    </table>
+    <div class="tableau-defilant" role="region" aria-label="Fiches existantes" tabindex="0">
+      <table class="tableau">
+        <caption class="contenu-cache">Fiches existantes</caption>
+        <thead>
+          <tr><th scope="col">Nom</th><th scope="col">Identifiant</th><th scope="col">Espèce</th><th scope="col">Statut</th><th scope="col">Actions</th></tr>
+        </thead>
+        <tbody>
+<% animaux.forEach(function (a) { %>          <tr>
+            <th scope="row" data-label="Nom"><%= a.nom %></th>
+            <td data-label="Identifiant"><%= a.slug %></td>
+            <td data-label="Espèce"><%= a.espece %></td>
+            <td data-label="Statut"><%= statuts[a.statut] || a.statut %></td>
+            <td data-label="Actions" class="cellule-actions">
+              <a href="/interne/animaux/<%= encodeURIComponent(a.slug) %>/modifier">Modifier<span class="contenu-cache"> la fiche de <%= a.nom %></span></a>
+              <form method="post" action="/interne/animaux/<%= encodeURIComponent(a.slug) %>/statut">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <input type="hidden" name="_version" value="<%= a.version %>">
+                <button type="submit" class="bouton bouton-secondaire"><%= a.statut === 'disponible' ? 'Marquer adopté' : 'Marquer disponible' %><span class="contenu-cache"> : <%= a.nom %></span></button>
+              </form>
+            </td>
+          </tr>
+<% }); %>        </tbody>
+      </table>
+    </div>
 <%- include('partials/fin') %>

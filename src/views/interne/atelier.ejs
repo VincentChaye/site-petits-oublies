@@ -1,0 +1,92 @@
+<%
+  /* Routes : GET /interne/atelier, POST /interne/atelier/apercu, POST /interne/atelier/deposer.
+     Variables : valeurs {animal, reseau, gabarit, cadrage, texte, hashtags, alt}, erreurs [string],
+       animaux [{slug, nom}], reseaux [{cle, libelle, active}], gabarits [string], cadrages [{cle, libelle}],
+       limites {instagram, facebook}, apercu (objet ou null), csrfToken, message. */
+  const _gab = { arrivee: 'Nouvelle arrivée', peu_consulte: 'Fiche peu consultée', relance_periodique: 'Relance périodique' };
+%><%- include('partials/debut', { titre: 'Atelier de publication', ecran: 'atelier' }) %>
+    <h1>Atelier de publication</h1>
+    <p class="intro">Rédigez une publication pour une fiche disponible, vérifiez l’aperçu, puis déposez-la dans la <a href="/interne/file">file de validation</a>. Rien n’est envoyé avant votre approbation (envois simulés). L’image et le lien viennent toujours de la fiche.</p>
+<% if (erreurs.length) { %>    <div class="resume-erreurs" role="alert">
+      <ul>
+<% erreurs.forEach(function (e) { %>        <li><%= e %></li>
+<% }); %>      </ul>
+    </div>
+<% } %>
+    <section aria-labelledby="titre-choix">
+      <h2 id="titre-choix">1. Choix de la fiche, du réseau et du gabarit</h2>
+      <form method="get" action="/interne/atelier">
+        <div class="champ">
+          <label for="at-animal">Fiche</label>
+          <select id="at-animal" name="animal">
+            <option value="">— Choisir —</option>
+<% animaux.forEach(function (a) { %>            <option value="<%= a.slug %>"<%= valeurs.animal === a.slug ? ' selected' : '' %>><%= a.nom %></option>
+<% }); %>          </select>
+        </div>
+        <div class="champ">
+          <label for="at-reseau">Réseau</label>
+          <select id="at-reseau" name="reseau">
+<% reseaux.forEach(function (r) { %>            <option value="<%= r.cle %>"<%= valeurs.reseau === r.cle ? ' selected' : '' %>><%= r.libelle %><%= r.active ? '' : ' (désactivé)' %></option>
+<% }); %>          </select>
+        </div>
+        <div class="champ">
+          <label for="at-gabarit">Gabarit</label>
+          <select id="at-gabarit" name="gabarit">
+            <option value="">Texte libre</option>
+<% gabarits.forEach(function (g) { %>            <option value="<%= g %>"<%= valeurs.gabarit === g ? ' selected' : '' %>><%= _gab[g] || g %></option>
+<% }); %>          </select>
+        </div>
+        <div class="champ">
+          <label for="at-cadrage">Cadrage de l’image (Instagram)</label>
+          <select id="at-cadrage" name="cadrage">
+<% cadrages.forEach(function (c) { %>            <option value="<%= c.cle %>"<%= valeurs.cadrage === c.cle ? ' selected' : '' %>><%= c.libelle %></option>
+<% }); %>          </select>
+        </div>
+        <button type="submit" class="bouton bouton-secondaire">Préremplir avec le gabarit</button>
+        <p class="aide">Le préremplissage remplace le texte et les hashtags saisis ci-dessous.</p>
+      </form>
+<% reseaux.forEach(function (r) { if (r.cle === valeurs.reseau && !r.active) { %>      <p class="alerte" role="note"><%= r.libelle %> n’est pas activé : vous pouvez déposer le post, mais son envoi échouera tant que le réseau est désactivé.</p>
+<% } }); %>    </section>
+
+    <section aria-labelledby="titre-redaction">
+      <h2 id="titre-redaction">2. Rédaction</h2>
+      <form method="post" action="/interne/atelier/apercu">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="animal" value="<%= valeurs.animal %>">
+        <input type="hidden" name="reseau" value="<%= valeurs.reseau %>">
+        <input type="hidden" name="gabarit" value="<%= valeurs.gabarit %>">
+        <input type="hidden" name="cadrage" value="<%= valeurs.cadrage %>">
+        <div class="champ">
+          <label for="at-texte">Texte (maximum <%= limites.instagram %> caractères sur Instagram, <%= limites.facebook %> sur Facebook, hashtags compris)</label>
+          <textarea id="at-texte" name="texte" rows="8" required><%= valeurs.texte %></textarea>
+        </div>
+        <div class="champ">
+          <label for="at-hashtags">Hashtags</label>
+          <span class="aide" id="at-hashtags-aide">Séparés par des espaces ou des virgules ; 30 au plus sur Instagram, 10 sur Facebook.</span>
+          <input type="text" id="at-hashtags" name="hashtags" value="<%= valeurs.hashtags %>" aria-describedby="at-hashtags-aide">
+        </div>
+        <div class="champ">
+          <label for="at-alt">Texte alternatif de l’image (facultatif, 300 caractères au plus)</label>
+          <input type="text" id="at-alt" name="alt" value="<%= valeurs.alt %>">
+        </div>
+        <div class="actions">
+          <button type="submit" class="bouton bouton-secondaire">Voir l’aperçu</button>
+          <button type="submit" class="bouton" formaction="/interne/atelier/deposer">Déposer dans la file de validation</button>
+        </div>
+      </form>
+    </section>
+<% if (apercu) { %>
+    <section aria-labelledby="titre-apercu">
+      <h2 id="titre-apercu">Aperçu <%= apercu.reseauLibelle %></h2>
+      <p class="meta">Format : <strong><%= apercu.cadrageLibelle %></strong> · Longueur : <strong><%= apercu.longueur %></strong> / <%= apercu.max %> caractères</p>
+      <article class="apercu <%= apercu.classe %>">
+<% if (apercu.image) { %>        <img src="<%= apercu.image %>" alt="<%= apercu.imageAlt %>" width="<%= apercu.largeur %>" height="<%= apercu.hauteur %>" class="apercu-image">
+<% } else { %>        <p class="etat-vide">Aucune image sur la fiche.</p>
+<% } %>        <p class="texte-post"><%= apercu.visible %><% if (apercu.coupe) { %>… <span class="etiquette">plus</span><% } %></p>
+<% if (apercu.coupe) { %>        <p class="aide">Le texte est coupé après <%= apercu.seuil %> caractères dans le fil ; le lecteur doit toucher « … plus » pour lire la suite.</p>
+<% } %><% if (apercu.hashtags.length) { %>        <p class="meta">Hashtags (<%= apercu.hashtags.length %>) : <%= apercu.hashtags.join(' ') %></p>
+<% } %><% if (apercu.lienCliquable) { %>        <p>Lien de la fiche : <a href="<%= apercu.url %>"><%= apercu.url %></a></p>
+<% } else { %>        <p>Lien de la fiche (non cliquable dans une légende Instagram) : <%= apercu.url %></p>
+<% } %>      </article>
+    </section>
+<% } %><%- include('partials/fin') %>

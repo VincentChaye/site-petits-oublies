@@ -10,6 +10,25 @@
     <h1>Tableau de bord</h1>
     <p class="intro">Classement des fiches par nombre de consultations, de la plus consultée à la moins consultée. Les fiches sous le seuil de <strong><%= seuil %></strong> consultation<%= seuil > 1 ? 's' : '' %> sont signalées.</p>
 
+    <section aria-labelledby="titre-periodes">
+      <h2 id="titre-periodes">Consultations récentes</h2>
+      <ul>
+        <li>7 derniers jours (aujourd’hui inclus) : <strong><%= vues7 %></strong> consultation<%= vues7 > 1 ? 's' : '' %></li>
+        <li>30 derniers jours (aujourd’hui inclus) : <strong><%= vues30 %></strong> consultation<%= vues30 > 1 ? 's' : '' %></li>
+      </ul>
+      <p class="aide">Jours comptés à l’heure de Paris, à partir de la mise en service de ce suivi.</p>
+    </section>
+
+    <section aria-labelledby="titre-demandes">
+      <h2 id="titre-demandes">Demandes d’intérêt</h2>
+      <p>Non rattachées à une fiche (fiche absente ou inconnue) : <strong><%= demandesNonRattachees %></strong>.<% if (demandesFichesAdoptees > 0) { %> Rattachées à une fiche adoptée : <strong><%= demandesFichesAdoptees %></strong>.<% } %></p>
+<% if (sansDemande.length) { %>      <p>Fiches disponibles sans aucune demande :</p>
+      <ul>
+<% sansDemande.forEach(function (f) { %>        <li><a href="/animaux/<%= f.slug %>"><%= f.nom %></a></li>
+<% }); %>      </ul>
+<% } else { %>      <p>Toutes les fiches disponibles ont reçu au moins une demande.</p>
+<% } %>    </section>
+
 <% if (_att.length) { %>    <section class="alerte" aria-labelledby="titre-attention">
       <h2 id="titre-attention">À surveiller : <%= _att.length %> fiche<%= _att.length > 1 ? 's' : '' %> sous le seuil</h2>
       <ul>
@@ -33,16 +52,18 @@
             <th scope="col">Fiche</th>
             <th scope="col">Espèce</th>
             <th scope="col">Consultations</th>
+            <th scope="col">Demandes</th>
             <th scope="col">Alerte</th>
           </tr>
         </thead>
         <tbody>
 <% classement.forEach(function (a) { %>          <tr>
-            <td><%= a.rang %></td>
-            <th scope="row"><a href="/animaux/<%= a.slug %>"><%= a.nom %></a></th>
-            <td><%= a.espece %></td>
-            <td><%= a.consultations %></td>
-            <td><% if (a.sousSeuil) { %><span class="etiquette etiquette-attention">Sous le seuil</span><% } else { %><span class="contenu-cache">Aucune</span><% } %></td>
+            <td data-label="Rang"><%= a.rang %></td>
+            <th scope="row" data-label="Fiche"><a href="/animaux/<%= a.slug %>"><%= a.nom %></a></th>
+            <td data-label="Espèce"><%= a.espece %></td>
+            <td data-label="Consultations"><%= a.consultations %></td>
+            <td data-label="Demandes"><%= a.demandes %></td>
+            <td data-label="Alerte"><% if (a.sousSeuil) { %><span class="etiquette etiquette-attention">Sous le seuil</span><% } else { %><span class="contenu-cache">Aucune</span><% } %></td>
           </tr>
 <% }); %>        </tbody>
       </table>

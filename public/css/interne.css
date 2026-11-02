@@ -1,67 +1,96 @@
 /* Espace interne – compléments à main.css (mêmes jetons, mêmes contrastes AA).
-   Mobile d'abord ; ajustements à 600 / 900 / 1200 px. */
-
-/* Largeur du contenu : --conteneur (main.css), identique au public. */
+   Espacements : --esp-1..8 ; gouttière et conteneur : --gouttiere / --conteneur (main.css).
+   Mobile d'abord ; ajustements à 600 / 900 px. */
 
 .form-deconnexion { margin: 0; }
 .interne .nav ul { align-items: center; }
+.interne .nav .bouton { padding: 0 var(--esp-4); }
 
-/* Tableaux : défilement horizontal focalisable sur petit écran */
-.tableau-defilant { overflow-x: auto; margin: 1rem 0; border: 1px solid var(--bord); border-radius: var(--rayon); background: var(--carte); }
-.tableau-defilant h2 { padding: .75rem 1rem 0; }
-.tableau { width: 100%; border-collapse: collapse; min-width: 34rem; font-size: .9375rem; }
-.tableau th, .tableau td { text-align: left; padding: .625rem .75rem; border-bottom: 1px solid var(--bord); vertical-align: top; }
-.tableau thead th { background: var(--surface); color: var(--texte); }
+/* Champs complémentaires (nombre, date) alignés sur ceux de main.css */
+.champ input[type="number"], .champ input[type="date"] {
+  display: block; width: 100%; min-height: var(--cible);
+  padding: var(--esp-2) var(--esp-3);
+  font: inherit; color: var(--texte); background: #FFFFFF;
+  border: 2px solid var(--bord-champ); border-radius: var(--rayon);
+}
+.champ input[readonly] { background: var(--surface); }
+.champ-erreur input, .champ-erreur select, .champ-erreur textarea { border-color: var(--erreur); }
+.formulaire .actions { align-items: center; margin-bottom: 0; }
+
+/* Tableaux : cartes sur mobile (data-label), tableau dès 900 px.
+   Le conteneur reste focalisable et contraint la largeur : jamais de défilement de la page. */
+.tableau-defilant { max-width: 100%; margin: var(--esp-4) 0; }
+.tableau-defilant:focus-visible { outline-offset: 2px; }
+.tableau { width: 100%; border-collapse: collapse; font-size: .9375rem; }
+.tableau, .tableau tbody, .tableau tr, .tableau th, .tableau td { display: block; }
+.tableau thead {
+  position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.tableau tr { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-2) var(--esp-4); margin: 0 0 var(--esp-4); }
+.tableau th, .tableau td {
+  display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: var(--esp-3);
+  text-align: left; padding: var(--esp-2) 0; border-bottom: 1px solid var(--bord); vertical-align: top;
+}
+.tableau tr > :last-child { border-bottom: 0; }
+.tableau th::before, .tableau td::before { content: attr(data-label); font-weight: 700; color: var(--secondaire); }
 .tableau tbody th { font-weight: 600; }
 .tableau a { display: inline-flex; align-items: center; min-height: var(--cible); }
+.tableau .cellule-actions { align-items: start; }
+.tableau .cellule-actions form { margin-top: var(--esp-2); }
+.tableau td form { max-width: 100%; }
+.tableau textarea, .tableau select { max-width: 100%; }
 
 /* Étiquettes (le sens ne repose jamais sur la couleur seule : texte explicite) */
 .etiquette {
-  display: inline-block; padding: .125rem .625rem; border-radius: 999px;
+  display: inline-block; padding: var(--esp-1) var(--esp-3); border-radius: 999px;
   background: var(--surface); color: var(--texte); border: 1px solid var(--bord-champ);
   font-size: .875rem; font-weight: 600; vertical-align: middle;
 }
 .etiquette-attention { background: var(--alerte-fond); color: var(--alerte-texte); border-color: var(--alerte-texte); }
 
 /* File de validation */
-.groupe { margin: 2rem 0; }
-.post { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: 1rem; margin: 1rem 0; max-width: 46rem; }
+.groupe { margin: var(--esp-6) 0; }
+.post { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-4); margin: var(--esp-4) 0; max-width: 46rem; }
 .post:target { outline: 3px solid var(--focus); outline-offset: 2px; }
 .post-echec { border-color: var(--alerte-texte); border-width: 2px; }
-.post .meta { color: var(--secondaire); margin-bottom: .75rem; }
-.texte-post { white-space: pre-wrap; margin: 0 0 1rem; padding: .75rem 1rem; background: var(--surface); border-left: 4px solid var(--primaire); border-radius: 4px; }
+.post .meta { color: var(--secondaire); margin-bottom: var(--esp-3); }
+.texte-post { white-space: pre-wrap; margin: 0 0 var(--esp-4); padding: var(--esp-3) var(--esp-4); background: var(--surface); border-left: 4px solid var(--primaire); border-radius: 4px; }
 .erreur-envoi { color: var(--alerte-texte); }
 .post .actions { align-items: flex-start; }
-.post .actions form { flex: 1 1 14rem; }
+.post .actions form { flex: 1 1 14rem; min-width: 0; }
 .interne .actions .bouton { align-self: flex-start; }
 
 /* Calendrier : liste groupée par jour */
 .jours { list-style: none; margin: 0; padding: 0; }
-.jours > li { margin: 0 0 1.5rem; }
-.jours h2 { border-bottom: 2px solid var(--primaire); padding-bottom: .25rem; text-transform: capitalize; }
+.jours > li { margin: 0 0 var(--esp-5); }
+.jours h2 { border-bottom: 2px solid var(--primaire); padding-bottom: var(--esp-1); text-transform: capitalize; }
 .liste-envois { list-style: none; margin: 0; padding: 0; }
-.envoi { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: .75rem 1rem; margin: 0 0 .75rem; max-width: 46rem; }
-.envoi p { margin: 0 0 .5rem; }
-.envoi .texte-post { margin-bottom: .5rem; }
+.envoi { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-3) var(--esp-4); margin: 0 0 var(--esp-3); max-width: 46rem; }
+.envoi p { margin: 0 0 var(--esp-2); }
+.envoi .texte-post { margin-bottom: var(--esp-2); }
 
 /* Onglets de soumissions */
-.onglets ul { list-style: none; margin: 0 0 1rem; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.onglets ul { list-style: none; margin: 0 0 var(--esp-4); padding: 0; display: flex; flex-wrap: wrap; gap: var(--esp-2); }
 .onglets a {
-  display: inline-flex; align-items: center; min-height: var(--cible); padding: 0 1rem;
+  display: inline-flex; align-items: center; min-height: var(--cible); padding: 0 var(--esp-4);
   border: 2px solid var(--bord-champ); border-radius: var(--rayon);
   color: var(--lien); background: var(--carte); font-weight: 600; text-decoration: none;
 }
 .onglets a[aria-current="page"] { background: var(--primaire); border-color: var(--primaire); color: #FFFFFF; }
 
 @media (min-width: 600px) {
-  .post { padding: 1.25rem; }
+  .post { padding: var(--esp-5); }
 }
 
 @media (min-width: 900px) {
-  .tableau { font-size: 1rem; }
+  .tableau-defilant { overflow-x: auto; border: 1px solid var(--bord); border-radius: var(--rayon); background: var(--carte); }
+  .tableau { display: table; font-size: 1rem; min-width: 34rem; }
+  .tableau thead { position: static; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; display: table-header-group; }
+  .tableau tbody { display: table-row-group; }
+  .tableau tr { display: table-row; background: none; border: 0; border-radius: 0; padding: 0; margin: 0; }
+  .tableau th, .tableau td { display: table-cell; padding: var(--esp-3); border-bottom: 1px solid var(--bord); }
+  .tableau tr > :last-child { border-bottom: 1px solid var(--bord); }
+  .tableau th::before, .tableau td::before { content: none; }
+  .tableau thead th { background: var(--surface); color: var(--texte); }
   .post .actions { flex-wrap: nowrap; }
-}
-
-@media (min-width: 1200px) {
-  .interne .principal { padding-left: 2rem; padding-right: 2rem; }
 }

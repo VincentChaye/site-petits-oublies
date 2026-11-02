@@ -23,12 +23,12 @@
         </thead>
         <tbody>
 <% entrees.forEach(function (e) { %>          <tr>
-            <th scope="row"><time datetime="<%= e.ts %>"><%= _dt(e.ts) %></time></th>
-            <td><%= e.platform %></td>
-            <td><%= e.mode %></td>
-            <td><span class="etiquette<%= e.result === 'ok' ? '' : ' etiquette-attention' %>"><%= e.result === 'ok' ? 'Réussi' : 'Échec' %></span></td>
-            <td><%= e.code %></td>
-            <td><%= e.message %></td>
+            <th scope="row" data-label="Date"><time datetime="<%= e.ts %>"><%= _dt(e.ts) %></time></th>
+            <td data-label="Plateforme"><%= e.platform %></td>
+            <td data-label="Mode"><%= e.mode %></td>
+            <td data-label="Résultat"><span class="etiquette<%= e.result === 'ok' ? '' : ' etiquette-attention' %>"><%= e.result === 'ok' ? 'Réussi' : 'Échec' %></span></td>
+            <td data-label="Code"><%= e.code %></td>
+            <td data-label="Détail"><%= e.message %></td>
           </tr>
 <% }); %>        </tbody>
       </table>
