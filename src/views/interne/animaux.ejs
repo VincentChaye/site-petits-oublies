@@ -1,0 +1,28 @@
+<%
+  /* Route : GET /interne/animaux. Variables : animaux [{slug, nom, espece, statut, version}], statuts, csrfToken, message. */
+%><%- include('partials/debut', { titre: 'Fiches animaux', ecran: 'animaux' }) %>
+    <h1>Fiches animaux</h1>
+    <p><a class="bouton" href="/interne/animaux/nouveau">Créer une fiche</a></p>
+    <table>
+      <caption>Fiches existantes</caption>
+      <thead>
+        <tr><th scope="col">Nom</th><th scope="col">Identifiant</th><th scope="col">Espèce</th><th scope="col">Statut</th><th scope="col">Actions</th></tr>
+      </thead>
+      <tbody>
+<% animaux.forEach(function (a) { %>        <tr>
+          <td><%= a.nom %></td>
+          <td><%= a.slug %></td>
+          <td><%= a.espece %></td>
+          <td><%= statuts[a.statut] || a.statut %></td>
+          <td>
+            <a href="/interne/animaux/<%= encodeURIComponent(a.slug) %>/modifier">Modifier</a>
+            <form method="post" action="/interne/animaux/<%= encodeURIComponent(a.slug) %>/statut">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <input type="hidden" name="_version" value="<%= a.version %>">
+              <button type="submit" class="bouton bouton-secondaire"><%= a.statut === 'disponible' ? 'Marquer adopté' : 'Marquer disponible' %></button>
+            </form>
+          </td>
+        </tr>
+<% }); %>      </tbody>
+    </table>
+<%- include('partials/fin') %>

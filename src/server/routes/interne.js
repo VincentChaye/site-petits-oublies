@@ -14,6 +14,7 @@ import { createRateLimiter } from '../../security/antispam.js';
 import { toCsv } from '../../security/csv.js';
 import { TYPES, libelleType, colonnesDe } from '../soumissions.js';
 import { LIBELLES_ESPECE } from '../content.js';
+import { monterAnimaux } from './interne-animaux.js';
 
 const LIBELLES_PLATEFORME = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', x: 'X', linkedin: 'LinkedIn' });
 const PLATEFORMES = Object.freeze(['facebook', 'instagram', 'x', 'linkedin']);
@@ -87,6 +88,9 @@ export function createInterneRouter({ contenu, soumissions, vues, social, secret
     next();
   });
   router.use(csrf);
+
+  // ── Fiches animaux (liste, création, modification, bascule de statut) ──────
+  monterAnimaux(router, { contenu, logger });
 
   router.post('/deconnexion', (req, res) => {
     sessions.destroy(req.sessionToken);
