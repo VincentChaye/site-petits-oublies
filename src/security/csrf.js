@@ -3,6 +3,7 @@
  * @module security/csrf
  */
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { verifierMemeOrigine } from './origine.js';
 
 const METHODES_PROTEGEES = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
@@ -39,7 +40,8 @@ function refuser(res, message) {
 
 /**
  * Middleware style Express : exige le jeton CSRF (champ `_csrf` du body ou en-tête
- * `x-csrf-token`) sur POST/PUT/PATCH/DELETE, et contrôle Origin vs Host si présent.
+ * `x-csrf-token`) sur POST/PUT/PATCH/DELETE, et contrôle la provenance de la requête
+ * via {@link verifierMemeOrigine} (Sec-Fetch-Site d'abord, Origin vs Host ensuite).
  * À placer après `requireSession` (utilise `req.sessionToken`). Répond 403 en français.
  * @param {{secret: string}} options Secret serveur.
  * @returns {(req: any, res: any, next: (err?: unknown) => void) => void} Middleware.
@@ -52,17 +54,11 @@ export function csrfProtection({ secret } = {}) {
   return (req, res, next) => {
     if (!METHODES_PROTEGEES.has(String(req.method).toUpperCase())) return next();
 
-    const origin = req.headers?.origin;
-    if (origin !== undefined) {
-      let hote;
-      try {
-        hote = new URL(origin).host;
-      } catch {
-        hote = undefined;
-      }
-      if (!hote || hote !== req.headers.host) {
-        return refuser(res, 'Requête refusée : origine non autorisée.');
-      }
+    // Provenance : Sec-Fetch-Site est prioritaire. Un navigateur recevant
+    // `Referrer-Policy: no-referrer` envoie `Origin: null` sur un POST de même
+    // origine ; s'en tenir à Origin refuserait toutes les écritures internes.
+    if (!verifierMemeOrigine(req).ok) {
+      return refuser(res, 'Requête refusée : origine non autorisée.');
     }
 
     const soumis = req.body?._csrf ?? req.headers?.['x-csrf-token'];

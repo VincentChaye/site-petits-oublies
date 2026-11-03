@@ -53,6 +53,19 @@ test('middleware : Origin vs Host', () => {
   assert.equal(run({ ...base, headers: { host: 'site.fr', origin: 'null' } }).res.statusCode, 403);
 });
 
+test('middleware : Sec-Fetch-Site prime sur Origin (régression navigateur réel)', () => {
+  const t = csrfTokenFor(SID, SECRET);
+  const base = { method: 'POST', body: { _csrf: t } };
+  // Avec `Referrer-Policy: no-referrer`, Chromium envoie `Origin: null` sur un POST
+  // de formulaire de MÊME origine : l'écriture doit passer, sinon l'espace interne
+  // est inutilisable dans un vrai navigateur.
+  assert.equal(run({ ...base, headers: { host: 'site.fr', origin: 'null', 'sec-fetch-site': 'same-origin' } }).next, true);
+  // À l'inverse, un Sec-Fetch-Site cross-site est refusé même sans Origin.
+  const r = run({ ...base, headers: { host: 'site.fr', 'sec-fetch-site': 'cross-site' } });
+  assert.equal(r.res.statusCode, 403);
+  assert.match(r.res.body, /origine/);
+});
+
 test('middleware : secret requis', () => {
   assert.throws(() => csrfProtection({}), /secret/);
 });

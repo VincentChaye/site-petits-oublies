@@ -117,11 +117,11 @@ par espaces ou virgules, doublons retirés. Le connecteur Facebook déclare une 
 ```
 content/        textes éditoriaux et fiches animaux (JSON, source de vérité)
 public/         CSS, JS d'amélioration progressive, images, robots.txt
-src/security/   configuration, en-têtes, sessions, CSRF, validation, anti-spam, CSV, purge
+src/security/   configuration, en-têtes, sessions, CSRF, provenance, validation, anti-spam, CSV, purge
 src/server/     application Express, routes, contenu, compteur de vues, soumissions, stockage
 src/integrations/  service de communication sociale et connecteurs (simulation)
 src/views/      gabarits EJS (public/ et interne/)
-tests/          tests de démarrage et d'intégration des routes
+tests/          tests d'intégration des routes (node:test) et tests/e2e/ (Playwright + axe-core)
 data/           données générées à l'exécution (non suivi par git)
 ```
 
@@ -130,9 +130,19 @@ data/           données générées à l'exécution (non suivi par git)
 - En-têtes sur toutes les réponses : CSP sans `unsafe-inline` (aucun script ni style en
   ligne), `nosniff`, `Referrer-Policy: no-referrer`, `X-Frame-Options: DENY`,
   `Permissions-Policy` restrictive, HSTS en production.
-- Formulaires publics : champ piège, jeton horodaté signé (HMAC), contrôle de l’origine,
-  limitation de débit par IP. **Aucune IP n’est écrite sur disque** (hachée en mémoire
-  avec un sel propre au processus).
+- Formulaires publics : champ piège, jeton horodaté signé (HMAC), contrôle de la
+  provenance, limitation de débit par IP. **Aucune IP n’est écrite sur disque** (hachée en
+  mémoire avec un sel propre au processus).
+- Contrôle de provenance (`src/security/origine.js`), commun aux formulaires publics et aux
+  écritures internes : `Sec-Fetch-Site` est examiné en premier (seuls `same-origin` et
+  `none` passent ; un `cross-site` est refusé même sans en-tête `Origin`), puis à défaut
+  `Origin` doit correspondre à `Host`. Une requête sans aucun des deux (client non
+  navigateur) reste acceptée, le jeton signé ou le jeton CSRF faisant alors seul foi.
+  **Pourquoi deux en-têtes** : parce que le site envoie `Referrer-Policy: no-referrer`,
+  Chromium aligne l’en-tête `Origin` des envois de formulaire sur la politique de référent
+  et envoie `Origin: null` même pour une soumission de même origine. Un contrôle fondé sur
+  `Origin` seul refusait donc, dans un vrai navigateur, la connexion à `/interne`, toutes
+  les écritures internes et tous les formulaires publics.
 - Espace interne : comparaison du secret à temps constant, cookie `HttpOnly`,
   `SameSite=Strict`, `Path=/interne` (`Secure` en production), jeton CSRF lié à la session
   sur toutes les écritures. Les routes publiques n’émettent jamais de cookie.
@@ -170,14 +180,33 @@ de vie : [`src/integrations/README-integrations.md`](src/integrations/README-int
 ## Tests
 
 ```sh
-npm test            # node --test sur src/security, src/integrations et tests/
-npm run test:e2e    # playwright test
+npm test                         # node --test sur src/security, src/integrations et tests/
+npx playwright install chromium  # une seule fois : télécharge le navigateur de test
+npm run test:e2e                 # playwright test (tests/e2e/)
 ```
 
-- `npm test` : 166 tests passaient lors de la rédaction.
-- `npm run test:e2e` : **prévu, non disponible**. Le script et les devDependencies Playwright/axe-core
-  existent, mais le dépôt ne contient **aucun `playwright.config.*` ni test de bout en bout**.
-- **Rapport d'accessibilité** : **prévu, non disponible** (ni rapport, ni test axe exécutable dans le dépôt). `playwright-report/` et `test-results/` sont ignorés par git s'ils sont produits.
+- `npm test` : 193 tests unitaires et d'intégration (serveur monté en mémoire, aucun navigateur).
+- `npm run test:e2e` : 61 tests de bout en bout dans un vrai Chromium, répartis en cinq fichiers de
+  `tests/e2e/` :
+
+  | Fichier | Ce qu'il couvre |
+  |---|---|
+  | `public.spec.js` | toutes les pages publiques (statut, titre, description, canonique, JSON-LD), absence de défilement horizontal et barre de navigation complète à **320, 768, 1024 et 1600 px**, variables d'espacement servies, `robots.txt` / `sitemap.xml` sans `/interne`, aucun lien public vers `/interne`, aucun cookie public |
+  | `fiches-animaux.spec.js` | créer une fiche depuis `/interne`, la voir sur `/animaux`, slug en doublon et saisie invalide refusés en français, modification visible côté public, bascule adopté/disponible |
+  | `demandes.spec.js` | formulaire d'intérêt public → `/interne/soumissions`, passage de « nouvelle » à « traitée » avec note, filtre par statut, export CSV (colonnes `Statut`, `Note`, `Modifiée le`, sans injection de formule), comptage sur le tableau de bord |
+  | `atelier.spec.js` | aperçu Instagram (carré 1080×1080, coupe à 125 caractères, lien non cliquable) et Facebook (1200×628, lien cliquable), limite de hashtags, dépôt dans la file puis approbation, refus d'une fiche adoptée |
+  | `securite.spec.js` | accès refusé sans session, secret erroné, déconnexion, CSP sans `unsafe-inline`, `no-store` sur `/interne`, aucun style/script en ligne, jeton CSRF exigé, écriture `cross-site` refusée, délai anti-robot |
+  | `accessibilite.spec.js` | **axe-core** sur 8 pages publiques et 9 pages internes (WCAG 2.0/2.1 A et AA) : zéro violation `critical` ou `serious` ; lien d'évitement, focus visible, formulaire atteignable au clavier, champ piège hors tabulation |
+
+**Isolation** : `tests/e2e/serveur-de-test.js` recopie `content/` et vide `data/` dans `.tmp-e2e/`
+avant de démarrer le serveur (`CONTENT_DIR` / `DATA_DIR`), sur le port 3100 et avec un secret de
+test. Les tests de bout en bout ne touchent donc **ni `content/` ni `data/`** du dépôt. Ils
+s'exécutent en un seul worker, sans parallélisme, car plusieurs parcours écrivent les mêmes
+fichiers JSON. `.tmp-e2e/`, `playwright-report/` et `test-results/` sont ignorés par git.
+
+**Rapport d'accessibilité** : produit par `accessibilite.spec.js`. En cas de violation, le message
+d'échec liste `impact · règle (n élément(s)) : aide`. Le rapport HTML complet s'obtient avec
+`CI=1 npm run test:e2e` (sortie dans `playwright-report/`).
 
 ## Parcours de démonstration
 

@@ -6,6 +6,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { securityHeadersMiddleware } from '../security/headers.js';
+import { noStoreMiddleware } from '../security/no-store.js';
 
 const racine = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -22,8 +23,9 @@ export function createApp(deps = {}) {
   app.set('views', path.join(racine, 'src', 'views'));
 
   app.use(securityHeadersMiddleware({ isProduction }));
+  app.use(noStoreMiddleware({ prefixe: '/interne' }));
   app.use(express.static(path.join(racine, 'public')));
-  app.use(express.urlencoded({ extended: false, limit: '20kb' }));
+  app.use(express.urlencoded({ extended: false, limit: '20kb', parameterLimit: 100 }));
 
   // ── Point de montage des routeurs (étapes suivantes) ──
   // Ex. : routeur public, formulaires, espace interne. Ils sont montés via `mount`
@@ -33,7 +35,7 @@ export function createApp(deps = {}) {
   // Gestionnaire d'erreurs : jamais de pile dans la réponse.
   // eslint-disable-next-line no-unused-vars
   app.use((err, req, res, next) => {
-    if (err?.type === 'entity.too.large') return res.status(413).type('text').send('Requête trop volumineuse.');
+    if (err?.type === 'entity.too.large' || err?.type === 'parameters.too.many') return res.status(413).type('text').send('Requête trop volumineuse.');
     if (err?.type === 'entity.parse.failed') return res.status(400).type('text').send('Requête invalide.');
     logger.error(`Erreur serveur : ${err?.name ?? 'Error'}: ${err?.message ?? ''}`);
     if (res.headersSent) return;

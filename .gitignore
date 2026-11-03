@@ -15,3 +15,6 @@ playwright-report/
 *.log
 *.tmp
 .essaim/
+
+# Dossiers jetables des tests de bout en bout
+.tmp-e2e/

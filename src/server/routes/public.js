@@ -6,6 +6,7 @@
 import express from 'express';
 import { validateForm, FORM_SCHEMAS } from '../../security/validation.js';
 import { honeypotPassed, issueFormToken, verifyFormToken, createRateLimiter } from '../../security/antispam.js';
+import { verifierMemeOrigine } from '../../security/origine.js';
 
 /** Champ piège attendu par `src/views/public/partials/formulaire.ejs`. */
 export const CHAMP_PIEGE = 'site_web';
@@ -39,23 +40,15 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
   const jeton = () => issueFormToken(secret);
   const commun = { baseUrl: base, formulaires: contenu.formulaires };
 
-  /** Vérifie l'origine d'une requête mutante (défense CSRF des formulaires publics). */
-  function origineValide(req) {
-    const origin = req.headers.origin;
-    if (origin === undefined) return true; // navigateurs anciens : le jeton signé reste exigé
-    try {
-      return new URL(origin).host === req.headers.host;
-    } catch {
-      return false;
-    }
-  }
-
   /**
    * Contrôles communs à toute soumission : origine, honeypot, jeton horodaté, débit.
    * @returns {{ok: true} | {ok: false, status: number, message: string}}
    */
   function controlesAntispam(req) {
-    if (!origineValide(req)) return { ok: false, status: 403, message: 'Requête refusée : origine non autorisée.' };
+    // Provenance : Sec-Fetch-Site d'abord. Avec `Referrer-Policy: no-referrer`, un
+    // navigateur envoie `Origin: null` sur un POST de même origine ; se fier à Origin
+    // seul refuserait tous les envois de formulaire. Le jeton signé reste exigé ensuite.
+    if (!verifierMemeOrigine(req).ok) return { ok: false, status: 403, message: 'Requête refusée : origine non autorisée.' };
     if (!honeypotPassed(req.body, CHAMP_PIEGE)) {
       logger.warn?.('[antispam] honeypot rempli : soumission ignorée.');
       return { ok: false, status: 400, message: 'Requête refusée.' };
@@ -144,7 +137,7 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
     const animal = contenu.animal(req.params.slug);
     if (!animal) return next();
     if (animal.statut !== 'disponible') return res.redirect(303, `/animaux/${animal.slug}`);
-    const r = await traiter(req, 'interet', { def: contenu.formulaires.interet, extra: { animal: animal.nom } });
+    const r = await traiter(req, 'interet', { def: contenu.formulaires.interet, extra: { animal: animal.nom, animalSlug: animal.slug } });
     if (r.envoye) return res.redirect(303, `/animaux/${animal.slug}/interet?envoye=1#formulaire-interet`);
     if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
     rendreInteret(res, animal, r.etat, r.status);

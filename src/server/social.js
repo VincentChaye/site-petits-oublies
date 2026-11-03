@@ -33,6 +33,26 @@ export function chargerGabarits(fichier = FICHIER_GABARITS) {
   return out;
 }
 
+/**
+ * Gabarits de l'atelier : {declencheur:{reseau:{texte, hashtags[]}}} avec texte et hashtags SÉPARÉS.
+ * Tolérant : un gabarit absent ou mal formé est simplement omis (l'atelier reste utilisable).
+ */
+export function chargerGabaritsSepares(fichier = FICHIER_GABARITS) {
+  let brut;
+  try { brut = JSON.parse(readFileSync(fichier, 'utf8')); } catch { return {}; }
+  const out = {};
+  for (const d of DECLENCHEURS) {
+    out[d] = {};
+    for (const r of RESEAUX) {
+      const g = brut?.[d]?.[r];
+      const texte = typeof g === 'string' ? g : g?.texte;
+      if (typeof texte !== 'string' || !texte.trim()) continue;
+      out[d][r] = { texte: texte.trim(), hashtags: Array.isArray(g?.hashtags) ? g.hashtags.filter((h) => typeof h === 'string' && h) : [] };
+    }
+  }
+  return out;
+}
+
 const msg = (e) => String(e?.message ?? e);
 
 export function createSocialRuntime({ env = process.env, dataDir, logger = console, getAnimaux, getVues, getSeuil, now } = {}) {
@@ -100,5 +120,5 @@ export function createSocialRuntime({ env = process.env, dataDir, logger = conso
     service.stopScheduler();
   }
 
-  return { service, scan, start, stop };
+  return { service, scan, start, stop, gabarits: chargerGabaritsSepares() };
 }

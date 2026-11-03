@@ -18,6 +18,28 @@ const LIBELLES = Object.freeze({
   don_parrainage: 'Dons et parrainages',
 });
 
+/** Statuts de suivi d'une demande (exactement ces trois valeurs). */
+export const STATUTS = Object.freeze(['nouvelle', 'en_cours', 'traitee']);
+export const LIBELLES_STATUT = Object.freeze({ nouvelle: 'Nouvelle', en_cours: 'En cours', traitee: 'Traitée' });
+/** Longueur maximale de la note, en points de code. */
+export const NOTE_MAX = 2000;
+
+/** Statut valide ? */
+export const statutValide = (v) => typeof v === 'string' && STATUTS.includes(v);
+
+/**
+ * Valide et assainit une note de suivi.
+ * @param {unknown} brut Valeur saisie.
+ * @returns {{ok: true, note: string} | {ok: false, message: string}} Résultat.
+ */
+export function validerNote(brut) {
+  if (brut === undefined || brut === null) return { ok: true, note: '' };
+  if (typeof brut !== 'string') return { ok: false, message: 'La note doit être un texte.' };
+  const note = brut.replace(/\r\n?/g, '\n').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '').trim();
+  if ([...note].length > NOTE_MAX) return { ok: false, message: `La note est trop longue (${NOTE_MAX} caractères maximum).` };
+  return { ok: true, note };
+}
+
 /** Libellé humain d'un type de formulaire. */
 export const libelleType = (type) => LIBELLES[type] ?? type;
 
@@ -48,6 +70,14 @@ export function createSoumissions({ store, now = Date.now, months = RETENTION_MO
   if (!store) throw new Error('createSoumissions : store est requis.');
   const COLLECTION = 'soumissions';
   const vide = () => Object.fromEntries(TYPES.map((t) => [t, []]));
+
+  /** Valeurs par défaut du suivi pour une entrée ancienne (lecture seule). */
+  const suivi = (s) => ({
+    ...s,
+    statut: statutValide(s.statut) ? s.statut : 'nouvelle',
+    note: typeof s.note === 'string' ? s.note : '',
+    modifieLe: s.modifieLe ?? s.createdAt,
+  });
 
   const normaliser = (brut) => {
     const base = vide();
@@ -80,7 +110,8 @@ export function createSoumissions({ store, now = Date.now, months = RETENTION_MO
      */
     async ajouter(type, valeurs) {
       if (!TYPES.includes(type)) throw new Error(`Type de formulaire inconnu : ${String(type)}`);
-      const entree = { id: randomUUID(), createdAt: new Date(now()).toISOString(), valeurs: { ...valeurs } };
+      const entree = { id: randomUUID(), createdAt: new Date(now()).toISOString(), valeurs: { ...valeurs }, statut: 'nouvelle', note: '' };
+      entree.modifieLe = entree.createdAt;
       await store.update(COLLECTION, (brut) => {
         const data = normaliser(brut);
         data[type] = [...data[type], entree];
@@ -91,7 +122,68 @@ export function createSoumissions({ store, now = Date.now, months = RETENTION_MO
     /** Soumissions d'un type, de la plus récente à la plus ancienne. */
     async lister(type) {
       const data = normaliser(await store.read(COLLECTION, vide()));
-      return [...(data[type] ?? [])].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+      return (data[type] ?? []).map(suivi).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    },
+    /**
+     * Met à jour statut et/ou note d'une soumission (atomique via store.update).
+     * Les valeurs doivent déjà être validées (statutValide, validerNote).
+     * @returns {Promise<{type: string, soumission: any} | null>} null si introuvable.
+     */
+    async modifier(id, { statut, note }) {
+      let trouve = null;
+      await store.update(COLLECTION, (brut) => {
+        trouve = null;
+        const data = normaliser(brut);
+        for (const t of TYPES) {
+          const i = data[t].findIndex((s) => s?.id === id);
+          if (i < 0) continue;
+          const maj = suivi(data[t][i]);
+          if (statut !== undefined) maj.statut = statut;
+          if (note !== undefined) maj.note = note;
+          maj.modifieLe = new Date(now()).toISOString();
+          data[t] = data[t].map((s, j) => (j === i ? maj : s));
+          trouve = { type: t, soumission: maj };
+        }
+        return data;
+      }, vide());
+      return trouve;
+    },
+    /**
+     * Migration idempotente : statut 'nouvelle' et note vide aux anciennes
+     * soumissions (statut valide conservé) ; pour « interet », déduit animalSlug
+     * quand valeurs.animal correspond au nom d'UNE SEULE fiche.
+     * @param {{animaux?: Array<{slug: string, nom: string}>}} [opts]
+     * @returns {Promise<{suivi: number, animalSlug: number}>} Nombre d'entrées modifiées.
+     */
+    async migrer({ animaux = [] } = {}) {
+      const parNom = new Map();
+      for (const a of animaux) parNom.set(a.nom, [...(parNom.get(a.nom) ?? []), a.slug]);
+      const bilan = { suivi: 0, animalSlug: 0 };
+      await store.update(COLLECTION, (brut) => {
+        bilan.suivi = 0;
+        bilan.animalSlug = 0;
+        const data = normaliser(brut);
+        for (const t of TYPES) {
+          data[t] = data[t].map((s) => {
+            let m = s;
+            if (!statutValide(s.statut) || typeof s.note !== 'string') {
+              m = { ...m, statut: statutValide(s.statut) ? s.statut : 'nouvelle', note: typeof s.note === 'string' ? s.note : '' };
+              if (m.modifieLe === undefined) m.modifieLe = s.createdAt;
+              bilan.suivi += 1;
+            }
+            if (t === 'interet' && m.valeurs && !m.valeurs.animalSlug && typeof m.valeurs.animal === 'string') {
+              const slugs = parNom.get(m.valeurs.animal) ?? [];
+              if (slugs.length === 1) {
+                m = { ...m, valeurs: { ...m.valeurs, animalSlug: slugs[0] } };
+                bilan.animalSlug += 1;
+              }
+            }
+            return m;
+          });
+        }
+        return data;
+      }, vide());
+      return bilan;
     },
     /** Nombre de soumissions par type. */
     async compter() {

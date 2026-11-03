@@ -225,7 +225,7 @@ test('espace interne : accès refusé sans session, secret erroné refusé', asy
   const faux = await poster('/interne/connexion', { secret: 'mauvais-secret' });
   assert.equal(faux.status, 401);
   assert.equal(faux.headers.get('set-cookie'), null);
-  assert.match(await faux.text(), /Secret incorrect/);
+  assert.match(await faux.text(), /Connexion impossible : secret invalide\./);
 
   const horsOrigine = await poster('/interne/connexion', { secret: SECRET }, { origin: 'http://attaquant.invalid' });
   assert.equal(horsOrigine.status, 403);

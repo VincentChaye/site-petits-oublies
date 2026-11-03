@@ -48,6 +48,14 @@ const vues = createCompteurVues({ store });
 
 // Purge des soumissions de plus de 12 mois, puis chargement des compteurs.
 await soumissions.purger();
+
+// Migration idempotente du suivi des demandes (avant le démarrage du social et l'écoute).
+try {
+  await soumissions.migrer({ animaux: contenu.animaux });
+} catch (e) {
+  console.error(`Migration des soumissions impossible : ${e.message}`);
+  process.exit(1);
+}
 await vues.charger();
 
 let social;

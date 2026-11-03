@@ -110,3 +110,60 @@ export function createRateLimiter({ max = 5, windowMs = 3600 * 1000, now = Date.
     sweep,
   };
 }
+
+/**
+ * @typedef {Object} FailureLimiter
+ * @property {(key: string) => {blocked: boolean, retryAfterSec: number}} status Consulte l'état SANS rien compter.
+ * @property {(key: string) => void} recordFailure Enregistre un échec.
+ * @property {(key: string) => void} reset Efface les échecs de la clé (après un succès).
+ * @property {() => void} sweep Purge les entrées expirées.
+ */
+
+/**
+ * Limiteur qui ne compte QUE les échecs (ex. connexion). Une clé est bloquée
+ * lorsqu'elle a cumulé `max` échecs dans la fenêtre. Les clés (ex. IP) sont
+ * hachées avec un sel propre au processus, gardées en mémoire uniquement et jamais journalisées.
+ * @param {{max?: number, windowMs?: number, maxKeys?: number, now?: () => number}} [options] Paramètres.
+ * @returns {FailureLimiter} Limiteur.
+ * @throws {Error} Si les paramètres sont invalides.
+ */
+export function createFailureLimiter({ max = 10, windowMs = 15 * 60 * 1000, maxKeys = 10000, now = Date.now } = {}) {
+  if (!Number.isInteger(max) || max < 1 || !Number.isFinite(windowMs) || windowMs <= 0 || !Number.isInteger(maxKeys) || maxKeys < 1) {
+    throw new Error('Paramètres de limitation des échecs invalides.');
+  }
+  const sel = randomBytes(16);
+  /** @type {Map<string, number[]>} */
+  const echecs = new Map();
+  const cle = (k) => createHash('sha256').update(sel).update(String(k)).digest('base64url');
+  const recents = (k, t) => (echecs.get(k) ?? []).filter((x) => x > t - windowMs);
+  const sweep = () => {
+    const t = now();
+    for (const k of [...echecs.keys()]) {
+      const r = recents(k, t);
+      if (r.length) echecs.set(k, r); else echecs.delete(k);
+    }
+  };
+  return {
+    status(key) {
+      const t = now();
+      const r = recents(cle(key), t);
+      if (r.length < max) return { blocked: false, retryAfterSec: 0 };
+      return { blocked: true, retryAfterSec: Math.max(1, Math.ceil((r[0] + windowMs - t) / 1000)) };
+    },
+    recordFailure(key) {
+      const t = now();
+      const k = cle(key);
+      if (!echecs.has(k) && echecs.size >= maxKeys) {
+        sweep();
+        if (echecs.size >= maxKeys) echecs.delete(echecs.keys().next().value); // borne mémoire
+      }
+      const r = recents(k, t);
+      r.push(t);
+      echecs.set(k, r);
+    },
+    reset(key) {
+      echecs.delete(cle(key));
+    },
+    sweep,
+  };
+}

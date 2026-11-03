@@ -91,6 +91,10 @@ export function createSocialService({ dataDir, env = process.env, getAnimals = (
     const t = nowMs();
     for (const platform of enabledPlatforms()) {
       const skip = (reason, extra = {}) => result.skipped.push({ animalId: vars.id, trigger, platform, reason, ...extra });
+      // Dépôts manuels (atelier) : tout trigger confondu, pour ne pas doubler une publication déjà prévue.
+      const manuels = posts.filter((p) => p.animalId === vars.id && p.trigger === 'manuel' && p.platform === platform);
+      if (manuels.some((p) => p.status === 'en_validation' || p.status === 'planifie')) { skip('deja_en_file'); continue; }
+      if (manuels.some((p) => p.status !== 'rejete' && t - Date.parse(p.createdAt) < cfg.relanceDays * DAY)) { skip('depot_manuel_recent'); continue; }
       const same = posts.filter((p) => p.animalId === vars.id && p.trigger === trigger && p.platform === platform);
       if (same.some((p) => p.status === 'en_validation' || p.status === 'planifie')) { skip('deja_en_file'); continue; }
       if (trigger === 'arrivee' && same.length) { skip('deja_genere'); continue; }
@@ -119,6 +123,37 @@ export function createSocialService({ dataDir, env = process.env, getAnimals = (
     }
     if (result.created.length) store.save();
     return result;
+  }
+
+  /**
+   * Dépose un post rédigé à la main (atelier) : `en_validation`, trigger 'manuel'.
+   * `text` est le texte FINAL (hashtags compris). L'animal adopté est refusé ici même.
+   * Le trigger 'manuel' n'est volontairement PAS dans TRIGGERS (réservé aux scans automatiques).
+   */
+  function deposerManuel({ animal, platform, text, imageUrl, alt, gabarit } = {}) {
+    if (!animal || (animal.id == null && animal.slug == null)) throw new SocialError('ANIMAL_INVALIDE', 'Animal sans identifiant.');
+    if (!isAvailable(animal)) throw new SocialError('ANIMAL_ADOPTE', 'Cet animal est adopté : on ne dépose plus de publication à son sujet.');
+    if (typeof text !== 'string' || !text.trim() || text.length > 5000) throw new SocialError('TEXTE_INVALIDE', 'Le texte doit être non vide (5000 caractères max).');
+    if (alt != null && (typeof alt !== 'string' || [...alt].length > 300)) throw new SocialError('ALT_INVALIDE', 'Le texte alternatif est limité à 300 caractères.');
+    let connector;
+    try { connector = conns.get(platform); } catch { connector = null; }
+    if (!connector) throw new SocialError('RESEAU_INVALIDE', `Réseau inconnu : ${String(platform)}`);
+    const vars = animalVars(animal, env);
+    const image = typeof imageUrl === 'string' && imageUrl ? imageUrl : null;
+    const f = connector.formatPost({ text, imageUrl: image, platform, animalId: vars.id, trigger: 'manuel' });
+    if (!f?.valid) throw new SocialError('TEXTE_INVALIDE', `Publication non valide pour ${platform}.`, f?.errors ?? []);
+    const final = f.text ?? text;
+    const ts = iso(nowMs());
+    const post = {
+      id: randomUUID(), animalId: vars.id, animalName: vars.nom, trigger: 'manuel', platform,
+      text: final, imageUrl: f.imageUrl ?? image, alt: alt ? alt : null, status: 'en_validation',
+      scheduledAt: null, createdAt: ts, updatedAt: ts, attempts: 0, nextAttemptAt: null,
+      lastError: null, rejectReason: null, templateSource: 'manuel',
+      history: [{ ts, action: 'cree', text: final, ...(gabarit ? { gabarit: String(gabarit) } : {}) }],
+    };
+    posts.push(post);
+    store.save();
+    return clone(post);
   }
 
   function scanTriggers({ belowThreshold = [] } = {}) {
@@ -268,7 +303,7 @@ export function createSocialService({ dataDir, env = process.env, getAnimals = (
   }
 
   return {
-    generate, scanTriggers, list, get, approve, edit, reject, retry, runDue,
+    generate, scanTriggers, deposerManuel, variablesAnimal: (animal) => animalVars(animal, env), list, get, approve, edit, reject, retry, runDue,
     getLog, connectorsStatus, startScheduler, stopScheduler,
     info: () => ({ templatesSource: tpl.source, templatesWarning: tpl.warning ?? null, config: { ...cfg }, schedulerRunning: !!timer, lastSchedulerError }),
   };

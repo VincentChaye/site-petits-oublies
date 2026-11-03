@@ -31,6 +31,7 @@ export function verifySecret(candidate, expected) {
  * @property {() => string} create Crée une session et renvoie son jeton.
  * @property {(token: unknown) => boolean} validate Vrai si le jeton existe et n'est pas expiré.
  * @property {(token: unknown) => void} destroy Supprime la session.
+ * @property {(oldToken: unknown) => string} regenerate Invalide l'ancien jeton et en émet un nouveau.
  */
 
 /**
@@ -63,6 +64,10 @@ export function createSessionStore({ ttlMs, now = Date.now } = {}) {
     },
     destroy(token) {
       if (typeof token === 'string') sessions.delete(token);
+    },
+    regenerate(oldToken) {
+      if (typeof oldToken === 'string') sessions.delete(oldToken);
+      return this.create();
     },
   };
 }
