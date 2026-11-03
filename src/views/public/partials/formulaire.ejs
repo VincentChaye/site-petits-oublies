@@ -5,7 +5,8 @@
      etat {valeurs:{}, erreurs:{champ:message}, envoye:bool, erreurGenerale:bool,
            messageGeneral:string (motif global : anti-spam, limitation de débit…)},
      formToken (jeton horodaté), titre (facultatif, remplace def.titre),
-     niveau (niveau de titre, 2 par défaut), cache (valeurs cachées {nom: valeur}). */
+     niveau (niveau de titre, 2 par défaut), cache (valeurs cachées {nom: valeur}),
+     rgpdCommun (mention RGPD partagée, affichée avec def.rgpd avant le bouton d'envoi). */
   const _etat = locals.etat || { valeurs: {}, erreurs: {}, envoye: false };
   const _val = _etat.valeurs || {};
   const _err = _etat.erreurs || {};
@@ -38,12 +39,14 @@
      const d = def.champs[c.nom];
      const fid = id + '-' + c.nom;
      const e = _err[c.nom];
+     // Une case de consentement facultative (requis: false) ne porte jamais `required` :
+     // sinon la validation du navigateur, comme celle de main.js, bloquerait l'envoi.
      const requis = c.requis !== false && !/facultatif/.test(d.label);
      const desc = [];
      if (d.aide) desc.push(fid + '-aide');
      if (e) desc.push(fid + '-erreur');
 %>    <div class="champ<%= c.type === 'checkbox' ? ' champ-case' : '' %><%= e ? ' champ-erreur' : '' %>">
-<% if (c.type === 'checkbox') { %>      <input type="checkbox" id="<%= fid %>" name="<%= c.nom %>" value="oui"<%= _val[c.nom] ? ' checked' : '' %> required data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true" aria-describedby="<%= desc.join(' ') %>"<% } %>>
+<% if (c.type === 'checkbox') { %>      <input type="checkbox" id="<%= fid %>" name="<%= c.nom %>" value="oui"<%= _val[c.nom] ? ' checked' : '' %><%= requis ? ' required' : '' %> data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true" aria-describedby="<%= desc.join(' ') %>"<% } %>>
       <div>
         <label for="<%= fid %>"><%= d.label %></label>
         <p class="erreur" id="<%= fid %>-erreur"<% if (!e) { %> hidden<% } %>><%= e || '' %></p>
@@ -58,6 +61,10 @@
 <% } else { %>      <input type="<%= c.type %>" id="<%= fid %>" name="<%= c.nom %>" value="<%= _val[c.nom] || '' %>"<% if (c.autocomplete) { %> autocomplete="<%= c.autocomplete %>"<% } %><%= requis ? ' required' : '' %> data-erreur="<%= d.erreur %>"<% if (e) { %> aria-invalid="true"<% } %><% if (desc.length) { %> aria-describedby="<%= desc.join(' ') %>"<% } %>>
 <% } %>      <p class="erreur" id="<%= fid %>-erreur"<% if (!e) { %> hidden<% } %>><%= e || '' %></p>
 <% } %>    </div>
-<% }); %>    <button type="submit" class="bouton"><%= def.envoyer %></button>
+<% }); %><% if (def.rgpd || locals.rgpdCommun) { %>    <div class="aide rgpd">
+      <p><strong>Vos données :</strong> <%= def.rgpd || '' %> <%= locals.rgpdCommun || '' %></p>
+      <p><a href="/confidentialite">Lire la politique de confidentialité</a></p>
+    </div>
+<% } %>    <button type="submit" class="bouton"><%= def.envoyer %></button>
   </form>
 <% } %></section>

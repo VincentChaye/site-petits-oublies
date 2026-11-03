@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { connexionInterne } from './aides.js';
 
-const INTERNES = ['/interne', '/interne/animaux', '/interne/soumissions', '/interne/atelier', '/interne/file', '/interne/calendrier', '/interne/journal'];
+const INTERNES = ['/interne', '/interne/animaux', '/interne/conseils', '/interne/soutien', '/interne/soumissions', '/interne/atelier', '/interne/file', '/interne/calendrier', '/interne/journal'];
 
 test.describe('accès à l’espace interne', () => {
   test('sans session, toute page interne renvoie vers la connexion', async ({ page }) => {
@@ -62,7 +62,7 @@ test.describe('en-têtes et absence de code en ligne', () => {
       scriptEnLigne: [...document.querySelectorAll('script')].filter((s) => !s.src && s.type !== 'application/ld+json').length,
       handlers: [...document.querySelectorAll('*')].filter((e) => [...e.attributes].some((a) => a.name.startsWith('on'))).length,
     }));
-    for (const url of ['/', '/animaux', '/animaux/biscotte/interet']) {
+    for (const url of ['/', '/adopter', '/animaux/biscotte/interet', '/conseils/alimentation-du-chat']) {
       await page.goto(url);
       expect(await compter(), url).toEqual({ styleAttr: 0, styleBalise: 0, scriptEnLigne: 0, handlers: 0 });
     }
@@ -77,7 +77,7 @@ test.describe('en-têtes et absence de code en ligne', () => {
     const erreurs = [];
     page.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()); });
     page.on('pageerror', (e) => erreurs.push(String(e)));
-    for (const url of ['/', '/animaux', '/animaux/biscotte', '/refuge', '/contact']) await page.goto(url);
+    for (const url of ['/', '/adopter', '/animaux/biscotte', '/nos-missions', '/famille-accueil', '/nous-soutenir', '/conseils', '/contact']) await page.goto(url);
     expect(erreurs).toEqual([]);
   });
 });
@@ -109,7 +109,7 @@ test.describe('écritures internes', () => {
     await page.locator('#formulaire-interet-logement').fill('Appartement lumineux au deuxième étage.');
     await page.locator('#formulaire-interet-message').fill('Envoi immédiat, sans attendre le délai.');
     await page.locator('#formulaire-interet-consentement').check();
-    await page.getByRole('button', { name: 'Envoyer ma demande' }).click(); // sans attendre les 3 s
+    await page.getByRole('button', { name: "Envoyer mon projet d'adoption" }).click(); // sans attendre les 3 s
     await expect(page.getByRole('alert')).toContainText('trop rapidement');
   });
 });

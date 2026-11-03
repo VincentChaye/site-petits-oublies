@@ -1,12 +1,256 @@
 [
-{"slug":"biscotte","nom":"Biscotte","espece":"chien","race":"croisé labrador","age":3,"tranche":"adulte","taille":"grand","sexe":"femelle","dateArrivee":"2026-08-14","statut":"disponible","caractere":"Joueuse et affectueuse, Biscotte s'attache vite aux humains. Elle apprend avec plaisir et supporte bien les autres chiens.","besoins":"Sorties quotidiennes d'au moins une heure, un jardin clos serait un plus. Éducation positive à poursuivre.","histoire":"Biscotte a été confiée au refuge après le déménagement de sa famille. Elle y a retrouvé confiance en quelques semaines.","photos":[{"src":"/img/animaux/biscotte-1.svg","alt":"Illustration d'une grande chienne au pelage sable, assise, la langue pendante"}]},
-{"slug":"moustache","nom":"Moustache","espece":"chat","race":"européen","age":6,"tranche":"adulte","taille":"moyen","sexe":"mâle","dateArrivee":"2026-05-02","statut":"disponible","caractere":"Calme et câlin, Moustache aime les genoux et les siestes au soleil. Il reste discret avec les visiteurs.","besoins":"Intérieur avec accès sécurisé à l'extérieur si possible. Convient à un foyer tranquille, sans jeunes enfants très bruyants.","histoire":"Trouvé errant près d'une zone de travaux, Moustache a été soigné puis pris en charge par le refuge.","photos":[{"src":"/img/animaux/moustache-1.svg","alt":"Illustration d'un chat tigré gris aux longues moustaches, couché en boule"}]},
-{"slug":"noisette","nom":"Noisette","espece":"lapin","race":"bélier nain","age":1,"tranche":"jeune","taille":"petit","sexe":"femelle","dateArrivee":"2026-09-20","statut":"disponible","caractere":"Curieuse et vive, Noisette explore tout ce qui bouge. Elle se laisse caresser une fois en confiance.","besoins":"Grand enclos ou pièce dédiée, foin à volonté, compagnie d'un congénère conseillée.","histoire":"Noisette fait partie d'une portée née au refuge. Elle est habituée à la présence humaine.","photos":[{"src":"/img/animaux/noisette-1.svg","alt":"Illustration d'une petite lapine brune aux oreilles tombantes"}]},
-{"slug":"tonnerre","nom":"Tonnerre","espece":"chien","race":"berger croisé","age":9,"tranche":"senior","taille":"grand","sexe":"mâle","dateArrivee":"2026-03-11","statut":"disponible","caractere":"Posé et loyal, Tonnerre préfère les balades paisibles. Il est sociable avec les personnes, plus réservé avec les inconnus à quatre pattes.","besoins":"Promenades courtes et régulières, suivi vétérinaire pour ses articulations, foyer calme.","histoire":"Son maître âgé n'a plus pu s'occuper de lui. Tonnerre cherche une famille pour ses vieux jours.","photos":[{"src":"/img/animaux/tonnerre-1.svg","alt":"Illustration d'un grand chien noir et feu au museau grisonnant, allongé"}]},
-{"slug":"praline","nom":"Praline","espece":"chat","race":"européen","age":1,"tranche":"jeune","taille":"petit","sexe":"femelle","dateArrivee":"2026-10-05","statut":"disponible","caractere":"Pleine d'énergie, Praline grimpe, saute et réclame des jeux. Elle ronronne dès qu'on la prend dans les bras.","besoins":"Jouets, arbre à chat et présence régulière. S'entendrait bien avec un autre chat joueur.","histoire":"Praline est arrivée avec ses frères et sœurs, trouvés dans une grange. Elle est la dernière de la fratrie à attendre une famille.","photos":[{"src":"/img/animaux/praline-1.svg","alt":"Illustration d'une jeune chatte écaille de tortue, dressée sur ses pattes"}]},
-{"slug":"roxy","nom":"Roxy","espece":"chien","race":"jack russell","age":5,"tranche":"adulte","taille":"petit","sexe":"femelle","dateArrivee":"2026-06-23","statut":"disponible","caractere":"Vive et malicieuse, Roxy adore la balle. Elle a besoin de cadre et de repères clairs.","besoins":"Activité physique quotidienne, jeux d'occupation. Peu adaptée à une vie très sédentaire.","histoire":"Roxy a passé ses premières années en appartement sans assez de sorties. Elle progresse bien avec l'équipe.","photos":[{"src":"/img/animaux/roxy-1.svg","alt":"Illustration d'une petite chienne blanche à taches brunes, une balle dans la gueule"}]},
-{"slug":"filou","nom":"Filou","espece":"chat","race":"maine coon croisé","age":4,"tranche":"adulte","taille":"grand","sexe":"mâle","dateArrivee":"2026-07-09","statut":"adopte","caractere":"Sociable et bavard, Filou suit son humain de pièce en pièce. Il s'entend bien avec les enfants.","besoins":"Brossage régulier de son poil mi-long et espace pour se dépenser.","histoire":"Filou a été adopté après plusieurs semaines au refuge. Sa fiche reste en archive interne.","photos":[{"src":"/img/animaux/filou-1.svg","alt":"Illustration d'un grand chat roux au poil épais, queue en panache"}]},
-{"slug":"caramel","nom":"Caramel","espece":"lapin","race":"nain","age":4,"tranche":"adulte","taille":"petit","sexe":"mâle","dateArrivee":"2026-04-17","statut":"disponible","caractere":"Tranquille et gourmand, Caramel apprécie les caresses sur le front et les légumes frais.","besoins":"Espace de course quotidien, foin, nettoyage régulier du clapier. Manipulation douce.","histoire":"Ancien lapin d'une classe d'école, Caramel est habitué au bruit et aux manipulations.","photos":[{"src":"/img/animaux/caramel-1.svg","alt":"Illustration d'un petit lapin beige clair assis sur de l'herbe"}]},
-{"slug":"luna","nom":"Luna","espece":"chat","race":"européen","age":11,"tranche":"senior","taille":"moyen","sexe":"femelle","dateArrivee":"2026-01-28","statut":"disponible","caractere":"Douce et sereine, Luna aime la tranquillité et les coussins moelleux. Elle se laisse approcher avec patience.","besoins":"Alimentation adaptée à son âge, contrôles vétérinaires réguliers, environnement stable.","histoire":"Luna vivait chez une dame entrée en maison de retraite. Elle attend un foyer paisible.","photos":[{"src":"/img/animaux/luna-1.svg","alt":"Illustration d'une chatte noire aux yeux dorés, assise sur un coussin"}]},
-{"slug":"pepito","nom":"Pépito","espece":"chien","race":"chihuahua croisé","age":1,"tranche":"jeune","taille":"petit","sexe":"mâle","dateArrivee":"2026-10-21","statut":"disponible","caractere":"Timide au début, Pépito devient très câlin une fois rassuré. Il a besoin de douceur et de patience.","besoins":"Habituation progressive aux bruits, apprentissage de la propreté, présence fréquente.","histoire":"Pépito est arrivé récemment, trouvé seul dans un parc. Il découvre peu à peu la vie en collectivité.","photos":[{"src":"/img/animaux/pepito-1.svg","alt":"Illustration d'un très petit chien beige aux grandes oreilles dressées"}]}
+ {
+  "slug": "biscotte",
+  "nom": "Biscotte",
+  "espece": "chien",
+  "race": "croisé labrador",
+  "age": 3,
+  "tranche": "adulte",
+  "taille": "grand",
+  "sexe": "femelle",
+  "dateArrivee": "2026-08-14",
+  "statut": "disponible",
+  "caractere": "Joueuse et affectueuse, Biscotte s'attache vite aux humains. Elle apprend avec plaisir et supporte bien les autres chiens.",
+  "besoins": "Sorties quotidiennes d'au moins une heure, un jardin clos serait un plus. Éducation positive à poursuivre.",
+  "histoire": "Biscotte a été confiée au refuge après le déménagement de sa famille. Elle y a retrouvé confiance en quelques semaines.",
+  "photos": [
+   {
+    "src": "/img/animaux/biscotte-1.svg",
+    "alt": "Illustration d'une grande chienne au pelage sable, assise, la langue pendante"
+   }
+  ]
+ },
+ {
+  "slug": "moustache",
+  "nom": "Moustache",
+  "espece": "chat",
+  "race": "européen",
+  "age": 6,
+  "tranche": "adulte",
+  "taille": "moyen",
+  "sexe": "mâle",
+  "dateArrivee": "2026-05-02",
+  "statut": "disponible",
+  "caractere": "Calme et câlin, Moustache aime les genoux et les siestes au soleil. Il reste discret avec les visiteurs.",
+  "besoins": "Intérieur avec accès sécurisé à l'extérieur si possible. Convient à un foyer tranquille, sans jeunes enfants très bruyants.",
+  "histoire": "Trouvé errant près d'une zone de travaux, Moustache a été soigné puis pris en charge par le refuge.",
+  "photos": [
+   {
+    "src": "/img/animaux/moustache-1.svg",
+    "alt": "Illustration d'un chat tigré gris aux longues moustaches, couché en boule"
+   }
+  ]
+ },
+ {
+  "slug": "noisette",
+  "nom": "Noisette",
+  "espece": "lapin",
+  "race": "bélier nain",
+  "age": 1,
+  "tranche": "jeune",
+  "taille": "petit",
+  "sexe": "femelle",
+  "dateArrivee": "2026-09-20",
+  "statut": "disponible",
+  "caractere": "Curieuse et vive, Noisette explore tout ce qui bouge. Elle se laisse caresser une fois en confiance.",
+  "besoins": "Grand enclos ou pièce dédiée, foin à volonté, compagnie d'un congénère conseillée.",
+  "histoire": "Noisette fait partie d'une portée née au refuge. Elle est habituée à la présence humaine.",
+  "photos": [
+   {
+    "src": "/img/animaux/noisette-1.svg",
+    "alt": "Illustration d'une petite lapine brune aux oreilles tombantes"
+   }
+  ]
+ },
+ {
+  "slug": "tonnerre",
+  "nom": "Tonnerre",
+  "espece": "chien",
+  "race": "berger croisé",
+  "age": 9,
+  "tranche": "senior",
+  "taille": "grand",
+  "sexe": "mâle",
+  "dateArrivee": "2026-03-11",
+  "statut": "en_soins",
+  "caractere": "Posé et loyal, Tonnerre préfère les balades paisibles. Il est sociable avec les personnes, plus réservé avec les inconnus à quatre pattes.",
+  "besoins": "Convalescence après une opération de la patte arrière, repos et sorties courtes. Adoptable à la fin de sa rééducation.",
+  "histoire": "Son maître âgé n'a plus pu s'occuper de lui. Tonnerre cherche une famille pour ses vieux jours.",
+  "photos": [
+   {
+    "src": "/img/animaux/tonnerre-1.svg",
+    "alt": "Illustration d'un grand chien noir et feu au museau grisonnant, allongé"
+   }
+  ]
+ },
+ {
+  "slug": "praline",
+  "nom": "Praline",
+  "espece": "chat",
+  "race": "européen",
+  "age": 1,
+  "tranche": "jeune",
+  "taille": "petit",
+  "sexe": "femelle",
+  "dateArrivee": "2026-10-05",
+  "statut": "en_soins",
+  "caractere": "Pleine d'énergie, Praline grimpe, saute et réclame des jeux. Elle ronronne dès qu'on la prend dans les bras.",
+  "besoins": "Traitement en cours pour une affection cutanée, suivi vétérinaire jusqu'en fin de mois. Adoptable dès la fin des soins : un projet d'adoption peut déjà être préparé avec l'équipe.",
+  "histoire": "Praline est arrivée avec ses frères et sœurs, trouvés dans une grange. Elle est la dernière de la fratrie à attendre une famille.",
+  "photos": [
+   {
+    "src": "/img/animaux/praline-1.svg",
+    "alt": "Illustration d'une jeune chatte écaille de tortue, dressée sur ses pattes"
+   }
+  ]
+ },
+ {
+  "slug": "roxy",
+  "nom": "Roxy",
+  "espece": "chien",
+  "race": "jack russell",
+  "age": 5,
+  "tranche": "adulte",
+  "taille": "petit",
+  "sexe": "femelle",
+  "dateArrivee": "2026-06-23",
+  "statut": "disponible",
+  "caractere": "Vive et malicieuse, Roxy adore la balle. Elle a besoin de cadre et de repères clairs.",
+  "besoins": "Activité physique quotidienne, jeux d'occupation. Peu adaptée à une vie très sédentaire.",
+  "histoire": "Roxy a passé ses premières années en appartement sans assez de sorties. Elle progresse bien avec l'équipe.",
+  "photos": [
+   {
+    "src": "/img/animaux/roxy-1.svg",
+    "alt": "Illustration d'une petite chienne blanche à taches brunes, une balle dans la gueule"
+   }
+  ]
+ },
+ {
+  "slug": "filou",
+  "nom": "Filou",
+  "espece": "chat",
+  "race": "maine coon croisé",
+  "age": 4,
+  "tranche": "adulte",
+  "taille": "grand",
+  "sexe": "mâle",
+  "dateArrivee": "2026-07-09",
+  "statut": "adopte",
+  "caractere": "Sociable et bavard, Filou suit son humain de pièce en pièce. Il s'entend bien avec les enfants.",
+  "besoins": "Brossage régulier de son poil mi-long et espace pour se dépenser.",
+  "histoire": "Filou a été adopté après plusieurs semaines au refuge. Sa fiche reste en archive interne.",
+  "photos": [
+   {
+    "src": "/img/animaux/filou-1.svg",
+    "alt": "Illustration d'un grand chat roux au poil épais, queue en panache"
+   }
+  ]
+ },
+ {
+  "slug": "caramel",
+  "nom": "Caramel",
+  "espece": "lapin",
+  "race": "nain",
+  "age": 4,
+  "tranche": "adulte",
+  "taille": "petit",
+  "sexe": "mâle",
+  "dateArrivee": "2026-04-17",
+  "statut": "disponible",
+  "caractere": "Tranquille et gourmand, Caramel apprécie les caresses sur le front et les légumes frais.",
+  "besoins": "Espace de course quotidien, foin, nettoyage régulier du clapier. Manipulation douce.",
+  "histoire": "Ancien lapin d'une classe d'école, Caramel est habitué au bruit et aux manipulations.",
+  "photos": [
+   {
+    "src": "/img/animaux/caramel-1.svg",
+    "alt": "Illustration d'un petit lapin beige clair assis sur de l'herbe"
+   }
+  ]
+ },
+ {
+  "slug": "luna",
+  "nom": "Luna",
+  "espece": "chat",
+  "race": "européen",
+  "age": 11,
+  "tranche": "senior",
+  "taille": "moyen",
+  "sexe": "femelle",
+  "dateArrivee": "2026-01-28",
+  "statut": "disponible",
+  "caractere": "Douce et sereine, Luna aime la tranquillité et les coussins moelleux. Elle se laisse approcher avec patience.",
+  "besoins": "Alimentation adaptée à son âge, contrôles vétérinaires réguliers, environnement stable.",
+  "histoire": "Luna vivait chez une dame entrée en maison de retraite. Elle attend un foyer paisible.",
+  "photos": [
+   {
+    "src": "/img/animaux/luna-1.svg",
+    "alt": "Illustration d'une chatte noire aux yeux dorés, assise sur un coussin"
+   }
+  ]
+ },
+ {
+  "slug": "pepito",
+  "nom": "Pépito",
+  "espece": "chien",
+  "race": "chihuahua croisé",
+  "age": 1,
+  "tranche": "jeune",
+  "taille": "petit",
+  "sexe": "mâle",
+  "dateArrivee": "2026-10-21",
+  "statut": "disponible",
+  "caractere": "Timide au début, Pépito devient très câlin une fois rassuré. Il a besoin de douceur et de patience.",
+  "besoins": "Habituation progressive aux bruits, apprentissage de la propreté, présence fréquente.",
+  "histoire": "Pépito est arrivé récemment, trouvé seul dans un parc. Il découvre peu à peu la vie en collectivité.",
+  "photos": [
+   {
+    "src": "/img/animaux/pepito-1.svg",
+    "alt": "Illustration d'un très petit chien beige aux grandes oreilles dressées"
+   }
+  ]
+ },
+ {
+  "slug": "sucre",
+  "nom": "Sucre",
+  "espece": "rongeur",
+  "race": "cochon d'Inde",
+  "age": 2,
+  "tranche": "adulte",
+  "taille": "petit",
+  "sexe": "mâle",
+  "dateArrivee": "2026-09-02",
+  "statut": "disponible",
+  "caractere": "Curieux et bavard, Sucre siffle dès qu'il entend le bruit du sac de foin. Il se laisse porter sans se débattre.",
+  "besoins": "Un enclos spacieux au sol, du foin à volonté, des légumes frais tous les jours et de la vitamine C. Les cochons d'Inde vivent mal seuls : une adoption en binôme est préférable.",
+  "histoire": "Sucre a été trouvé dans un carton près d'une animalerie. Il a repris du poids en famille d'accueil en trois semaines.",
+  "photos": [
+   {
+    "src": "/img/animaux/sucre-1.svg",
+    "alt": "Illustration d'un cochon d'Inde au pelage roux et blanc, assis dans le foin"
+   }
+  ],
+  "_version": 1
+ },
+ {
+  "slug": "albertine",
+  "nom": "Albertine",
+  "espece": "oiseau",
+  "race": "poule soie",
+  "age": 1,
+  "tranche": "jeune",
+  "taille": "petit",
+  "sexe": "femelle",
+  "dateArrivee": "2026-09-20",
+  "statut": "disponible",
+  "caractere": "Calme et familière, Albertine suit les humains dans le jardin et accepte d'être prise dans les bras.",
+  "besoins": "Un extérieur clos et sécurisé contre les prédateurs, un abri sec, de la compagnie : une poule ne vit pas seule.",
+  "histoire": "Albertine faisait partie d'un petit groupe de poules récupéré après l'abandon d'un terrain. Elle a été vermifugée et remise en forme.",
+  "photos": [
+   {
+    "src": "/img/animaux/albertine-1.svg",
+    "alt": "Illustration d'une poule au plumage gris ardoise, debout dans l'herbe"
+   }
+  ],
+  "_version": 1
+ }
 ]

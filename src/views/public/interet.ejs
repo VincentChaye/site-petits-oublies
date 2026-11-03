@@ -5,11 +5,11 @@
   const _def = formulaires.interet;
   const _url = '/animaux/' + animal.slug;
   const _page = {
-    title: 'Intérêt pour ' + animal.nom + ' – Refuge des Quatre Vents',
-    meta: 'Exprimez votre intérêt pour ' + animal.nom + ' : un membre de l’équipe du refuge fictif vous recontacte. Aucun engagement, site de démonstration.',
+    title: 'Projet d’adoption pour ' + animal.nom + ' – Les Petits Oubliés',
+    meta: 'Parlez-nous de votre projet d’adoption pour ' + animal.nom + ' : un membre de l’équipe des Petits Oubliés vous recontacte. Aucun engagement.',
     url: _url + '/interet'
   };
-  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Animaux', url: '/animaux' }, { nom: animal.nom, url: _url }, { nom: 'Exprimer son intérêt', url: _url + '/interet' }];
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Adopter', url: '/adopter' }, { nom: animal.nom, url: _url }, { nom: 'Projet d’adoption', url: _url + '/interet' }];
   const _champs = [
     { nom: 'prenom', type: 'text', autocomplete: 'given-name' },
     { nom: 'email', type: 'email', autocomplete: 'email' },
@@ -18,8 +18,10 @@
     { nom: 'message', type: 'textarea', rows: 5 },
     { nom: 'consentement', type: 'checkbox' }
   ];
-%><%- include('partials/debut', { page: _page, actif: 'animaux', fil: _fil, robots: 'noindex, follow' }) %>
-    <h1>Cet animal m’intéresse : <%= animal.nom %></h1>
+%><%- include('partials/debut', { page: _page, actif: 'adopter', fil: _fil, robots: 'noindex, follow' }) %>
+    <h1>Mon projet d’adoption : <%= animal.nom %></h1>
     <p><a href="<%= _url %>">Retour à la fiche de <%= animal.nom %></a></p>
+<% if (animal.statut === 'en_soins') { %>    <p class="alerte" role="note"><%= animal.nom %> est encore en soins : votre demande est la bienvenue dès maintenant, et nous vous préviendrons dès qu’une adoption sera possible.</p>
+<% } %>
 <%- include('partials/formulaire', { id: 'formulaire-interet', def: _def, titre: _def.titre.replace('{nom}', animal.nom), action: _url + '/interet', champs: _champs, etat: locals.etat, niveau: 2 }) %>
 <%- include('partials/fin') %>

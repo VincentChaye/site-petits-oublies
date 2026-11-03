@@ -17,7 +17,12 @@ export function arrivalOf(animal) {
   return animal.arrivalDate ?? animal.dateArrivee;
 }
 
+/**
+ * Un animal est publiable seulement s'il est adoptable : ni adopté, ni en soins.
+ * Un animal en soins reste visible au catalogue mais ne part pas en publication,
+ * automatique ou planifiée — l'équipe choisit elle-même quand en parler.
+ */
 export function isAvailable(animal) {
   const s = String(animal.statut ?? animal.status ?? '').toLowerCase();
-  return !['adopte', 'adopté', 'adopted'].includes(s);
+  return !['adopte', 'adopté', 'adopted', 'en_soins', 'en soins'].includes(s);
 }

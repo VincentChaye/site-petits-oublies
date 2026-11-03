@@ -1,8 +1,8 @@
 {
-  "name": "site-adoption",
+  "name": "site-petits-oublies",
   "version": "0.1.0",
   "private": true,
-  "description": "Démo locale d'un site de refuge animalier fictif",
+  "description": "Site de l'association de protection animale Les Petits Oubliés",
   "type": "module",
   "engines": { "node": ">=22" },
   "scripts": {

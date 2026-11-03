@@ -1,0 +1,100 @@
+<%
+  /* Variables : page (pages.soutenir), soutien (content/soutien.json), collectes (à venir),
+     formulaires, association, baseUrl, etatAdhesion, etatBenevolat, formToken, rgpdCommun.
+     Routes POST : /nous-soutenir/adhesion et /nous-soutenir/benevolat. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Nous soutenir', url: page.url }];
+  const _sec = {};
+  page.sections.forEach(function (s) { _sec[s.id] = s; });
+  const _pa = soutien.paiement || {};
+  const _manque = !_pa.iban || !_pa.helloasso_url;
+  const _adhesion = [
+    { nom: 'nom', type: 'text', autocomplete: 'family-name' },
+    { nom: 'prenom', type: 'text', autocomplete: 'given-name' },
+    { nom: 'adresse', type: 'textarea', rows: 2 },
+    { nom: 'telephone', type: 'tel', autocomplete: 'tel' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'formule', type: 'select', options: formulaires.adhesion.options_formule },
+    { nom: 'montant', type: 'text', requis: false },
+    { nom: 'representant_nom', type: 'text', requis: false },
+    { nom: 'representant_prenom', type: 'text', requis: false },
+    { nom: 'representant_accord', type: 'checkbox', requis: false },
+    { nom: 'recu_fiscal', type: 'checkbox', requis: false },
+    { nom: 'photos', type: 'checkbox', requis: false },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+  const _benevolat = [
+    { nom: 'nom', type: 'text', autocomplete: 'name' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'disponibilites', type: 'textarea', rows: 3 },
+    { nom: 'envies', type: 'textarea', rows: 4 },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+  const _jour = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full', timeZone: 'Europe/Paris' });
+  const _dateLisible = function (iso) {
+    const d = new Date(iso + 'T12:00:00Z');
+    return Number.isNaN(d.getTime()) ? iso : _jour.format(d);
+  };
+%><%- include('partials/debut', { actif: 'soutenir', fil: _fil, ld: [{
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: page.h1,
+    description: page.meta,
+    url: baseUrl.replace(/\/$/, '') + page.url
+  }] }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+
+    <section class="bande" id="adhesion">
+      <h2><%= _sec.adhesion.h2 %></h2>
+      <p><%= _sec.adhesion.texte %></p>
+    </section>
+
+    <section class="section" id="paiement">
+      <h2>Moyens de règlement</h2>
+      <p><%= _pa.intro %></p>
+      <ul class="liste-puces">
+<% if (_pa.iban) { %>        <li><strong>Virement :</strong> IBAN <%= _pa.iban %>, au nom de « <%= _pa.iban_titulaire %> ».</li>
+<% } %>        <li><strong>Chèque :</strong> <%= _pa.cheque %></li>
+        <li><strong>Espèces :</strong> <%= _pa.especes %></li>
+      </ul>
+<% if (_pa.helloasso_url) { %>      <p><a class="bouton" href="<%= _pa.helloasso_url %>" rel="noopener noreferrer"><%= _pa.helloasso_libelle %></a></p>
+<% } %><% if (_manque) { %>      <div class="a-completer" role="note" aria-label="Information à compléter">
+        <p><strong>À compléter :</strong> <%= _pa.a_completer %></p>
+      </div>
+<% } %>      <p>Ce site ne traite aucun paiement : rien n’est débité ici, et aucune coordonnée bancaire ne vous est demandée dans le formulaire.</p>
+    </section>
+
+<%- include('partials/formulaire', { id: 'formulaire-adhesion', def: formulaires.adhesion, action: '/nous-soutenir/adhesion', champs: _adhesion, etat: locals.etatAdhesion }) %>
+
+    <section class="bande bande-verte" id="materiel">
+      <h2><%= _sec.materiel.h2 %></h2>
+      <p><%= _sec.materiel.texte %></p>
+<% if (soutien.besoins.length) { %>      <ul class="liste-cartes">
+<% soutien.besoins.forEach(function (b) { %>        <li>
+          <h3><%= b.titre %></h3>
+<% if (b.detail) { %>          <p><%= b.detail %></p>
+<% } %>        </li>
+<% }); %>      </ul>
+<% } else { %>      <p>La liste des besoins sera publiée prochainement.</p>
+<% } %>    </section>
+
+    <section class="section" id="collectes">
+      <h2><%= _sec.collectes.h2 %></h2>
+      <p><%= _sec.collectes.texte %></p>
+<% if (collectes.length) { %>      <ul class="liste-cartes">
+<% collectes.forEach(function (c) { %>        <li>
+          <h3><%= c.lieu %><% if (c.ville) { %> — <%= c.ville %><% } %></h3>
+          <p><time datetime="<%= c.date %>"><%= _dateLisible(c.date) %></time><% if (c.horaires) { %>, <%= c.horaires %><% } %></p>
+<% if (c.detail) { %>          <p><%= c.detail %></p>
+<% } %>        </li>
+<% }); %>      </ul>
+<% } else { %>      <p>Aucune collecte n’est programmée pour le moment. Suivez-nous sur les réseaux : nous les annonçons dès qu’une date est fixée.</p>
+<% } %>    </section>
+
+    <section class="bande" id="benevolat">
+      <h2><%= _sec.benevolat.h2 %></h2>
+      <p><%= _sec.benevolat.texte %></p>
+    </section>
+
+<%- include('partials/formulaire', { id: 'formulaire-benevolat', def: formulaires.benevolat, action: '/nous-soutenir/benevolat', champs: _benevolat, etat: locals.etatBenevolat }) %>
+<%- include('partials/fin') %>

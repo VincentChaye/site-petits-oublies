@@ -1,0 +1,27 @@
+<%
+  /* Variables : page (pages.conseils), conseils (content/conseils.json), association, baseUrl. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Conseils', url: page.url }];
+  const _ld = [{
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: conseils.map(function (c, i) {
+      return { '@type': 'ListItem', position: i + 1, url: baseUrl.replace(/\/$/, '') + '/conseils/' + c.slug, name: c.titre };
+    })
+  }];
+%><%- include('partials/debut', { actif: 'conseils', fil: _fil, ld: _ld }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+<% if (conseils.length) { %>    <ul class="liste-conseils">
+<% conseils.forEach(function (c) { %>      <li>
+        <article class="carte">
+          <div class="carte-corps">
+            <h2><a href="/conseils/<%= c.slug %>"><%= c.titre %></a></h2>
+            <p><%= c.resume %></p>
+          </div>
+        </article>
+      </li>
+<% }); %>    </ul>
+<% } else { %>    <div class="etat-vide">
+      <p><%= page.vide %></p>
+    </div>
+<% } %><%- include('partials/fin') %>

@@ -1,0 +1,51 @@
+<%
+  /* Variables : page (pages.famille_accueil), formulaires, association, baseUrl,
+     etat {valeurs, erreurs, envoye, erreurGenerale}, formToken, rgpdCommun.
+     Route POST : /famille-accueil. */
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Devenir famille d’accueil', url: page.url }];
+  const _champs = [
+    { nom: 'nom', type: 'text', autocomplete: 'family-name' },
+    { nom: 'prenom', type: 'text', autocomplete: 'given-name' },
+    { nom: 'email', type: 'email', autocomplete: 'email' },
+    { nom: 'telephone', type: 'tel', autocomplete: 'tel' },
+    { nom: 'adresse', type: 'textarea', rows: 2 },
+    { nom: 'logement', type: 'select', options: formulaires.famille_accueil.options_logement },
+    { nom: 'autres_animaux', type: 'textarea', rows: 2 },
+    { nom: 'disponibilite', type: 'textarea', rows: 3 },
+    { nom: 'especes', type: 'textarea', rows: 2 },
+    { nom: 'engagements', type: 'checkbox' },
+    { nom: 'consentement', type: 'checkbox' }
+  ];
+%><%- include('partials/debut', { actif: 'famille', fil: _fil, ld: [{
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: page.h1,
+    description: page.meta,
+    url: baseUrl.replace(/\/$/, '') + page.url
+  }] }) %>
+    <h1><%= page.h1 %></h1>
+    <p class="intro"><%= page.intro %></p>
+<% page.sections.forEach(function (s, i) { %>    <section class="bande<%= i % 2 ? ' bande-verte' : '' %>" id="<%= s.id %>">
+      <h2><%= s.h2 %></h2>
+      <p><%= s.texte %></p>
+<% if (s.points && s.points.length) { %>      <ul class="liste-puces">
+<% s.points.forEach(function (p) { %>        <li><%= p %></li>
+<% }); %>      </ul>
+<% } %>    </section>
+<% }); %>    <section class="section" id="sociabilisation">
+      <h2><%= page.sociabilisation.h2 %></h2>
+      <p><%= page.sociabilisation.texte %></p>
+    </section>
+    <section class="section" id="relais">
+      <h2><%= page.relais.h2 %></h2>
+      <p><%= page.relais.texte %></p>
+    </section>
+    <section class="section" id="engagements">
+      <h2><%= page.engagements.h2 %></h2>
+      <p><%= page.engagements.intro %></p>
+      <ol class="liste-puces">
+<% page.engagements.liste.forEach(function (e) { %>        <li><%= e %></li>
+<% }); %>      </ol>
+    </section>
+<%- include('partials/formulaire', { id: 'formulaire-famille-accueil', def: formulaires.famille_accueil, action: '/famille-accueil', champs: _champs, etat: locals.etat }) %>
+<%- include('partials/fin') %>

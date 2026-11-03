@@ -1,0 +1,127 @@
+<%
+  /* Route : GET /interne/soutien. Variables : version, paiement, besoins, collectes,
+     valeursBesoin, erreursBesoin, valeursCollecte, erreursCollecte, csrfToken, message. */
+  const _esc = function (t) { return String(t).replace(/[&<>"']/g, function (ch) { return '&#' + ch.charCodeAt(0) + ';'; }); };
+  const _mk = function (erreurs, prefixe) {
+    return {
+      err: function (c) { return erreurs && erreurs[c]; },
+      cls: function (c) { return (erreurs && erreurs[c]) ? ' champ-erreur' : ''; },
+      attr: function (c) { return (erreurs && erreurs[c]) ? ' aria-invalid="true" aria-describedby="' + prefixe + c + '-erreur"' : ''; },
+      msg: function (c) { return (erreurs && erreurs[c]) ? '<p class="erreur" id="' + prefixe + c + '-erreur">' + _esc(erreurs[c]) + '</p>' : ''; }
+    };
+  };
+  const _b = _mk(erreursBesoin, 'besoin-');
+  const _c = _mk(erreursCollecte, 'collecte-');
+  const _jour = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long', timeZone: 'Europe/Paris' });
+  const _dateLisible = function (iso) {
+    const d = new Date(iso + 'T12:00:00Z');
+    return Number.isNaN(d.getTime()) ? iso : _jour.format(d);
+  };
+%><%- include('partials/debut', { titre: 'Besoins et collectes', ecran: 'soutien' }) %>
+    <h1>Besoins et collectes</h1>
+    <p>Ces deux listes alimentent la page publique <a href="/nous-soutenir">Nous soutenir</a>. Une collecte dont la date est passée disparaît automatiquement du site : elle reste visible ici jusqu’à ce que vous la supprimiez.</p>
+<% if (!paiement.iban || !paiement.helloasso_url) { %>    <div class="alerte" role="note">
+      <p><strong>À compléter :</strong> <%= paiement.a_completer %></p>
+    </div>
+<% } %>
+    <section id="besoins">
+      <h2>Besoins en matériel</h2>
+<% if (!besoins.length) { %>      <p>Aucun besoin publié pour le moment.</p>
+<% } else { %>      <div class="tableau-defilant" role="region" aria-label="Besoins publiés" tabindex="0">
+        <table class="tableau">
+          <caption class="contenu-cache">Besoins publiés</caption>
+          <thead><tr><th scope="col">Besoin</th><th scope="col">Détail</th><th scope="col">Actions</th></tr></thead>
+          <tbody>
+<% besoins.forEach(function (b) { %>            <tr>
+              <th scope="row" data-label="Besoin"><%= b.titre %></th>
+              <td data-label="Détail"><%= b.detail %></td>
+              <td data-label="Actions" class="cellule-actions">
+                <form method="post" action="/interne/soutien/besoins/<%= encodeURIComponent(b.id) %>/supprimer">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="_version" value="<%= version %>">
+                  <button type="submit" class="bouton bouton-danger">Supprimer<span class="contenu-cache"> le besoin <%= b.titre %></span></button>
+                </form>
+              </td>
+            </tr>
+<% }); %>          </tbody>
+        </table>
+      </div>
+<% } %>      <form class="formulaire" method="post" action="/interne/soutien/besoins" aria-labelledby="titre-besoin">
+        <h3 id="titre-besoin">Ajouter un besoin</h3>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="_version" value="<%= version %>">
+        <div class="champ<%= _b.cls('titre') %>">
+          <label for="besoin-titre">Besoin</label>
+          <input type="text" id="besoin-titre" name="titre" value="<%= valeursBesoin.titre %>" maxlength="120" required<%- _b.attr('titre') %>>
+          <%- _b.msg('titre') %>
+        </div>
+        <div class="champ<%= _b.cls('detail') %>">
+          <label for="besoin-detail">Détail (facultatif)</label>
+          <input type="text" id="besoin-detail" name="detail" value="<%= valeursBesoin.detail %>" maxlength="500"<%- _b.attr('detail') %>>
+          <%- _b.msg('detail') %>
+        </div>
+        <div class="actions">
+          <button type="submit" class="bouton">Ajouter le besoin</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="collectes">
+      <h2>Agenda des collectes</h2>
+<% if (!collectes.length) { %>      <p>Aucune collecte enregistrée.</p>
+<% } else { %>      <div class="tableau-defilant" role="region" aria-label="Collectes enregistrées" tabindex="0">
+        <table class="tableau">
+          <caption class="contenu-cache">Collectes enregistrées</caption>
+          <thead><tr><th scope="col">Date</th><th scope="col">Lieu</th><th scope="col">Horaires</th><th scope="col">Détail</th><th scope="col">Actions</th></tr></thead>
+          <tbody>
+<% collectes.forEach(function (c) { %>            <tr>
+              <th scope="row" data-label="Date"><%= _dateLisible(c.date) %><% if (c.passee) { %> <span class="etiquette etiquette-attention">Passée : masquée du site</span><% } %></th>
+              <td data-label="Lieu"><%= c.lieu %><% if (c.ville) { %> — <%= c.ville %><% } %></td>
+              <td data-label="Horaires"><%= c.horaires %></td>
+              <td data-label="Détail"><%= c.detail %></td>
+              <td data-label="Actions" class="cellule-actions">
+                <form method="post" action="/interne/soutien/collectes/<%= encodeURIComponent(c.id) %>/supprimer">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="_version" value="<%= version %>">
+                  <button type="submit" class="bouton bouton-danger">Supprimer<span class="contenu-cache"> la collecte du <%= _dateLisible(c.date) %></span></button>
+                </form>
+              </td>
+            </tr>
+<% }); %>          </tbody>
+        </table>
+      </div>
+<% } %>      <form class="formulaire" method="post" action="/interne/soutien/collectes" aria-labelledby="titre-collecte">
+        <h3 id="titre-collecte">Ajouter une collecte</h3>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="_version" value="<%= version %>">
+        <div class="champ<%= _c.cls('date') %>">
+          <label for="collecte-date">Date (AAAA-MM-JJ)</label>
+          <input type="date" id="collecte-date" name="date" value="<%= valeursCollecte.date %>" required<%- _c.attr('date') %>>
+          <%- _c.msg('date') %>
+        </div>
+        <div class="champ<%= _c.cls('lieu') %>">
+          <label for="collecte-lieu">Lieu (nom du magasin)</label>
+          <input type="text" id="collecte-lieu" name="lieu" value="<%= valeursCollecte.lieu %>" maxlength="120" required<%- _c.attr('lieu') %>>
+          <%- _c.msg('lieu') %>
+        </div>
+        <div class="champ<%= _c.cls('ville') %>">
+          <label for="collecte-ville">Ville (facultatif)</label>
+          <input type="text" id="collecte-ville" name="ville" value="<%= valeursCollecte.ville %>" maxlength="80"<%- _c.attr('ville') %>>
+          <%- _c.msg('ville') %>
+        </div>
+        <div class="champ<%= _c.cls('horaires') %>">
+          <label for="collecte-horaires">Horaires (facultatif)</label>
+          <input type="text" id="collecte-horaires" name="horaires" value="<%= valeursCollecte.horaires %>" maxlength="80"<%- _c.attr('horaires') %>>
+          <%- _c.msg('horaires') %>
+        </div>
+        <div class="champ<%= _c.cls('detail') %>">
+          <label for="collecte-detail">Détail (facultatif)</label>
+          <input type="text" id="collecte-detail" name="detail" value="<%= valeursCollecte.detail %>" maxlength="500"<%- _c.attr('detail') %>>
+          <%- _c.msg('detail') %>
+        </div>
+        <div class="actions">
+          <button type="submit" class="bouton">Ajouter la collecte</button>
+        </div>
+      </form>
+    </section>
+<%- include('partials/fin') %>

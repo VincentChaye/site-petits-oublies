@@ -2,17 +2,18 @@
   /* Variables : animal (entrée de content/animaux.json), baseUrl.
      Titre et description meta sont calculés ici à partir de la fiche. */
   const _base = baseUrl.replace(/\/$/, '');
-  const _esp = { chien: 'Chien', chat: 'Chat', lapin: 'Lapin' }[animal.espece] || animal.espece;
+  const _esp = { chien: 'Chien', chat: 'Chat', lapin: 'Lapin', rongeur: 'Rongeur', oiseau: 'Oiseau', nac: 'NAC' }[animal.espece] || animal.espece;
+  const _statuts = { disponible: 'Adoptable', en_soins: 'En soins', adopte: 'Adopté' };
   const _url = '/animaux/' + animal.slug;
   const _resume = animal.caractere.length > 150 ? animal.caractere.slice(0, 149).replace(/\s+\S*$/, '') + '…' : animal.caractere;
   const _page = {
-    title: animal.nom + ' – ' + _esp.toLowerCase() + ' à adopter | Refuge démo',
+    title: animal.nom + ' – ' + _esp.toLowerCase() + ' à adopter | Les Petits Oubliés',
     meta: _resume,
     url: _url
   };
-  const _dispo = animal.statut === 'disponible';
+  const _ouvert = animal.statut === 'disponible' || animal.statut === 'en_soins';
   const _p = animal.photos && animal.photos[0];
-  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Animaux', url: '/animaux' }, { nom: animal.nom, url: _url }];
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Adopter', url: '/adopter' }, { nom: animal.nom, url: _url }];
   const _schema = {
     '@context': 'https://schema.org',
     '@type': 'Animal',
@@ -22,13 +23,14 @@
   };
   if (_p) _schema.image = _base + _p.src;
   const _age = animal.age + (animal.age > 1 ? ' ans' : ' an');
-%><%- include('partials/debut', { page: _page, actif: 'animaux', fil: _fil, ld: [_schema] }) %>
+%><%- include('partials/debut', { page: _page, actif: 'adopter', fil: _fil, ld: [_schema] }) %>
     <article class="fiche">
 <% if (_p) { %>      <div class="fiche-image">
         <img src="<%= _p.src %>" alt="<%= _p.alt %>" width="400" height="300">
       </div>
 <% } %>      <div>
         <h1><%= animal.nom %></h1>
+        <p><span class="badge badge-<%= animal.statut %>"><%= _statuts[animal.statut] || animal.statut %></span></p>
         <dl>
           <dt>Espèce</dt><dd><%= _esp %></dd>
           <dt>Race</dt><dd><%= animal.race %></dd>
@@ -36,8 +38,9 @@
           <dt>Taille</dt><dd><%= animal.taille %></dd>
           <dt>Sexe</dt><dd><%= animal.sexe %></dd>
         </dl>
-<% if (_dispo) { %>        <p class="actions"><a class="bouton" href="<%= _url %>/interet">Cet animal m’intéresse</a></p>
-<% } else { %>        <p class="alerte" role="note">Cet animal a trouvé une famille et n’est plus disponible.</p>
+<% if (animal.statut === 'en_soins') { %>        <p class="alerte" role="note">Cet animal est actuellement en soins : il n’est pas encore adoptable, mais vous pouvez déjà nous parler de votre projet. Nous vous tiendrons au courant de son rétablissement.</p>
+<% } %><% if (_ouvert) { %>        <p class="actions"><a class="bouton" href="<%= _url %>/interet">Parler de mon projet d’adoption</a></p>
+<% } else { %>        <p class="alerte" role="note">Cet animal a trouvé une famille et n’est plus proposé à l’adoption.</p>
 <% } %>      </div>
     </article>
     <div class="section">
@@ -47,6 +50,6 @@
       <p><%= animal.besoins %></p>
       <h2>Son histoire</h2>
       <p><%= animal.histoire %></p>
-      <p>Aucune adoption n’a lieu en ligne : un membre de l’équipe vous recontacte pour échanger. <a href="/animaux">Retour à la liste des animaux</a>.</p>
+      <p>Aucune adoption n’a lieu en ligne : un membre de l’équipe vous recontacte pour échanger. <a href="/adopter">Retour à la liste des animaux</a>.</p>
     </div>
 <%- include('partials/fin') %>

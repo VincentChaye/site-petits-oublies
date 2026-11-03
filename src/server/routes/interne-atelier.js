@@ -45,7 +45,7 @@ export function validerAtelier(corps, { contenu }) {
 
   const fiche = contenu.animal(valeurs.animal.trim());
   if (!fiche) erreurs.push('Choisissez une fiche existante.');
-  else if (!isAvailable(fiche)) erreurs.push('Cette fiche est adoptée : on ne dépose plus de publication à son sujet.');
+  else if (!isAvailable(fiche)) erreurs.push('Cette fiche est adoptée ou en soins : on ne dépose pas de publication à son sujet.');
   const reseau = valeurs.reseau;
   if (!RESEAUX_ATELIER.includes(reseau)) erreurs.push('Réseau invalide : choisissez Instagram ou Facebook.');
   if (valeurs.gabarit !== '' && !TRIGGERS.includes(valeurs.gabarit)) erreurs.push('Gabarit inconnu.');
@@ -112,7 +112,7 @@ export function monterAtelier(router, { contenu, social, logger = console }) {
         valeurs[c] = q[c];
       }
       const fiche = valeurs.animal ? contenu.animal(valeurs.animal) : null;
-      if (valeurs.animal && (!fiche || !isAvailable(fiche))) { erreurs.push('Fiche inconnue ou adoptée.'); delete valeurs.animal; }
+      if (valeurs.animal && (!fiche || !isAvailable(fiche))) { erreurs.push('Fiche inconnue, adoptée ou en soins.'); delete valeurs.animal; }
       if (valeurs.reseau && !RESEAUX_ATELIER.includes(valeurs.reseau)) { erreurs.push('Réseau invalide.'); delete valeurs.reseau; }
       if (valeurs.gabarit && !TRIGGERS.includes(valeurs.gabarit)) { erreurs.push('Gabarit inconnu.'); delete valeurs.gabarit; }
       if (valeurs.cadrage && !Object.hasOwn(CADRAGES_INSTAGRAM, valeurs.cadrage)) { erreurs.push('Cadrage invalide.'); delete valeurs.cadrage; }

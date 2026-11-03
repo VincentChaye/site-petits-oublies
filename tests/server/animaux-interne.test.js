@@ -132,7 +132,7 @@ test('CSRF : POST sans jeton ou avec jeton faux -> 403, rien d’écrit', async 
     assert.equal((await poster('/interne/animaux/nouveau', champs, { cookie })).status, 403);
   }
   assert.equal((await poster('/interne/animaux/biscotte/modifier', { ...fiche('biscotte'), _version: '0' }, { cookie })).status, 403);
-  assert.equal((await poster('/interne/animaux/biscotte/statut', { _version: '0' }, { cookie })).status, 403);
+  assert.equal((await poster('/interne/animaux/biscotte/statut', { _version: '0', statut: 'adopte' }, { cookie })).status, 403);
   assert.equal(contenu.animaux.length, avant);
 });
 
@@ -142,7 +142,7 @@ test('scénario : créer puis modifier une fiche, visible sur /animaux, écrite 
   assert.equal(cree.status, 303);
   assert.match(cree.headers.get('location'), /ok=cree/);
 
-  let page = await (await obtenir('/animaux')).text();
+  let page = await (await obtenir('/adopter')).text();
   assert.match(page, /Gribouille/);
   assert.equal((await obtenir('/animaux/gribouille')).status, 200);
 
@@ -156,36 +156,52 @@ test('scénario : créer puis modifier une fiche, visible sur /animaux, écrite 
 
   const modif = await poster('/interne/animaux/gribouille/modifier', { _csrf: csrf, ...fiche('gribouille', { nom: 'Gribouillette' }), _version: '1' }, { cookie });
   assert.equal(modif.status, 303);
-  page = await (await obtenir('/animaux')).text();
+  page = await (await obtenir('/adopter')).text();
   assert.match(page, /Gribouillette/);
   assert.doesNotMatch(page, />Gribouille</);
   assert.equal(contenu.animal('gribouille')._version, 2);
   assert.equal(lireReel(), avantReel);
 });
 
-test('409 : version périmée sur modification et bascule, rien d’écrit', async () => {
+test('409 : version périmée sur modification et changement de statut, rien d’écrit', async () => {
   const { cookie, csrf } = await connexion();
   const m = await poster('/interne/animaux/gribouille/modifier', { _csrf: csrf, ...fiche('gribouille', { nom: 'Périmée' }), _version: '1' }, { cookie });
   assert.equal(m.status, 409);
   assert.match(await m.text(), /modifiée par quelqu’un d’autre/);
-  const b = await poster('/interne/animaux/gribouille/statut', { _csrf: csrf, _version: '1' }, { cookie });
+  const b = await poster('/interne/animaux/gribouille/statut', { _csrf: csrf, _version: '1', statut: 'adopte' }, { cookie });
   assert.equal(b.status, 409);
   assert.equal(contenu.animal('gribouille').nom, 'Gribouillette');
   assert.equal(contenu.animal('gribouille').statut, 'disponible');
 });
 
-test('bascule adopté/disponible : retire puis remet la fiche du catalogue', async () => {
+test('statut : les trois valeurs, « en soins » reste au catalogue, « adopté » en sort', async () => {
   const { cookie, csrf } = await connexion();
-  const v = contenu.animal('gribouille')._version;
-  const r = await poster('/interne/animaux/gribouille/statut', { _csrf: csrf, _version: String(v) }, { cookie });
-  assert.equal(r.status, 303);
+  const statut = (cible, version) => poster('/interne/animaux/gribouille/statut', { _csrf: csrf, _version: String(version), statut: cible }, { cookie });
+  let v = contenu.animal('gribouille')._version;
+
+  assert.equal((await statut('adopte', v)).status, 303);
   assert.equal(contenu.animal('gribouille').statut, 'adopte');
-  assert.doesNotMatch(await (await obtenir('/animaux')).text(), /Gribouillette/);
-  const r2 = await poster('/interne/animaux/gribouille/statut', { _csrf: csrf, _version: String(v + 1) }, { cookie });
-  assert.equal(r2.status, 303);
+  assert.doesNotMatch(await (await obtenir('/adopter')).text(), /Gribouillette/);
+
+  v = contenu.animal('gribouille')._version;
+  assert.equal((await statut('en_soins', v)).status, 303);
+  assert.equal(contenu.animal('gribouille').statut, 'en_soins');
+  const catalogue = await (await obtenir('/adopter')).text();
+  assert.match(catalogue, /Gribouillette/, 'un animal en soins reste visible au catalogue');
+  assert.match(catalogue, /En soins/, 'son badge de statut est écrit en toutes lettres');
+
+  v = contenu.animal('gribouille')._version;
+  assert.equal((await statut('disponible', v)).status, 303);
   assert.equal(contenu.animal('gribouille').statut, 'disponible');
-  assert.equal((await poster('/interne/animaux/gribouille/statut', { _csrf: csrf }, { cookie })).status, 422);
-  assert.equal((await poster('/interne/animaux/inconnu/statut', { _csrf: csrf, _version: '0' }, { cookie })).status, 404);
+
+  v = contenu.animal('gribouille')._version;
+  const inconnu = await statut('en_vacances', v);
+  assert.equal(inconnu.status, 422, 'un statut hors liste blanche est refusé');
+  assert.match(await inconnu.text(), /Statut inconnu/);
+  assert.equal(contenu.animal('gribouille').statut, 'disponible');
+
+  assert.equal((await poster('/interne/animaux/gribouille/statut', { _csrf: csrf, statut: 'adopte' }, { cookie })).status, 422, 'version absente');
+  assert.equal((await poster('/interne/animaux/inconnu/statut', { _csrf: csrf, _version: '0', statut: 'adopte' }, { cookie })).status, 404);
 });
 
 test('fiche existante sans _version : éditable (version 0), puis versionnée', async () => {

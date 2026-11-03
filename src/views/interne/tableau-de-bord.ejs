@@ -20,13 +20,13 @@
     </section>
 
     <section aria-labelledby="titre-demandes">
-      <h2 id="titre-demandes">Demandes d’intérêt</h2>
-      <p>Non rattachées à une fiche (fiche absente ou inconnue) : <strong><%= demandesNonRattachees %></strong>.<% if (demandesFichesAdoptees > 0) { %> Rattachées à une fiche adoptée : <strong><%= demandesFichesAdoptees %></strong>.<% } %></p>
-<% if (sansDemande.length) { %>      <p>Fiches disponibles sans aucune demande :</p>
+      <h2 id="titre-demandes">Projets d’adoption</h2>
+      <p>Non rattachées à une fiche (fiche absente ou inconnue) : <strong><%= demandesNonRattachees %></strong>.<% if (demandesFichesAdoptees > 0) { %> Rattachées à une fiche adoptée ou retirée : <strong><%= demandesFichesAdoptees %></strong>.<% } %></p>
+<% if (sansDemande.length) { %>      <p>Fiches adoptables sans aucune demande :</p>
       <ul>
 <% sansDemande.forEach(function (f) { %>        <li><a href="/animaux/<%= f.slug %>"><%= f.nom %></a></li>
 <% }); %>      </ul>
-<% } else { %>      <p>Toutes les fiches disponibles ont reçu au moins une demande.</p>
+<% } else { %>      <p>Toutes les fiches adoptables ont reçu au moins une demande.</p>
 <% } %>    </section>
 
 <% if (_att.length) { %>    <section class="alerte" aria-labelledby="titre-attention">

@@ -207,7 +207,7 @@ test('tableau de bord : vues 7/30 jours, demandes par fiche, non rattachées, fi
   assert.match(html, /7 derniers jours[^<]*<strong>1<\/strong>/);
   assert.match(html, /30 derniers jours[^<]*<strong>1<\/strong>/);
   assert.match(html, /Non rattachées à une fiche[^<]*<strong>2<\/strong>/);
-  assert.match(html, /Fiches disponibles sans aucune demande/);
+  assert.match(html, /Fiches adoptables sans aucune demande/);
   // a a 2 demandes (n’est pas dans la liste « sans demande »), b en a 0
   const sans = html.slice(html.indexOf('sans aucune demande'), html.indexOf('titre-classement'));
   assert.ok(sans.includes(`/animaux/${b.slug}`));

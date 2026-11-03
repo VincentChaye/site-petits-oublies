@@ -1,0 +1,84 @@
+<%
+  /* Routes : GET/POST /interne/conseils/nouveau et /interne/conseils/:slug/modifier.
+     Variables : creation, slug, valeurs, erreurs, version, aide {types, outils}, csrfToken, message. */
+  const _v = function (c) { return (valeurs && valeurs[c] !== undefined) ? valeurs[c] : ''; };
+  const _action = creation ? '/interne/conseils/nouveau' : '/interne/conseils/' + encodeURIComponent(slug) + '/modifier';
+  const _err = function (c) { return erreurs && erreurs[c]; };
+  const _esc = function (t) { return String(t).replace(/[&<>"']/g, function (ch) { return '&#' + ch.charCodeAt(0) + ';'; }); };
+  const _attr = function (c) { return _err(c) ? ' aria-invalid="true" aria-describedby="' + c + '-erreur"' : ''; };
+  const _msg = function (c) { return _err(c) ? '<p class="erreur" id="' + c + '-erreur">' + _esc(_err(c)) + '</p>' : ''; };
+  const _cls = function (c) { return _err(c) ? ' champ-erreur' : ''; };
+%><%- include('partials/debut', { titre: creation ? 'Nouvelle fiche conseil' : 'Modifier la fiche conseil', ecran: 'conseils' }) %>
+    <h1><%= creation ? 'Nouvelle fiche conseil' : 'Modifier la fiche « ' + slug + ' »' %></h1>
+<% if (Object.keys(erreurs).length) { %>    <div class="resume-erreurs" role="alert" tabindex="-1" data-focus-initial>
+      <p>La fiche n’a pas été enregistrée. Corrigez les points suivants :</p>
+      <ul>
+<% Object.keys(erreurs).forEach(function (c) { %>        <li><% if (c.charAt(0) !== '_') { %><a href="#<%= c %>"><%= erreurs[c] %></a><% } else { %><%= erreurs[c] %><% } %></li>
+<% }); %>      </ul>
+<% if (erreurs._version) { %>      <p><a href="/interne/conseils/<%= encodeURIComponent(slug) %>/modifier">Recharger la fiche</a></p>
+<% } %>    </div>
+<% } %>    <form class="formulaire" method="post" action="<%= _action %>">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+<% if (!creation) { %>      <input type="hidden" name="_version" value="<%= version %>">
+<% } %>      <div class="champ<%= _cls('slug') %>">
+        <label for="slug">Identifiant (slug), 2 à 60 caractères : a-z, 0-9, tiret <%= creation ? '(définitif, sert d’adresse : /conseils/mon-slug)' : '(non modifiable)' %></label>
+        <input type="text" id="slug" name="slug" value="<%= creation ? _v('slug') : slug %>" maxlength="60" <%= creation ? 'required' : 'readonly' %><%- _attr('slug') %>>
+        <%- _msg('slug') %>
+      </div>
+      <div class="champ<%= _cls('titre') %>">
+        <label for="titre">Titre de la fiche</label>
+        <input type="text" id="titre" name="titre" value="<%= _v('titre') %>" maxlength="120" required<%- _attr('titre') %>>
+        <%- _msg('titre') %>
+      </div>
+      <div class="champ<%= _cls('resume') %>">
+        <label for="resume">Résumé</label>
+        <span class="aide" id="resume-aide">Une ou deux phrases : c’est ce qui s’affiche sur la liste des fiches et dans les moteurs de recherche.</span>
+        <textarea id="resume" name="resume" rows="2" maxlength="400" required aria-describedby="resume-aide<%= _err('resume') ? ' resume-erreur' : '' %>"<%= _err('resume') ? ' aria-invalid="true"' : '' %>><%= _v('resume') %></textarea>
+        <%- _msg('resume') %>
+      </div>
+      <div class="champ<%= _cls('icone') %>">
+        <label for="icone">Thème (facultatif, usage interne)</label>
+        <span class="aide" id="icone-aide">Par exemple : chat, chien, lapin. Sert à repérer la fiche dans cette liste.</span>
+        <input type="text" id="icone" name="icone" value="<%= _v('icone') %>" maxlength="30" aria-describedby="icone-aide<%= _err('icone') ? ' icone-erreur' : '' %>"<%= _err('icone') ? ' aria-invalid="true"' : '' %>>
+        <%- _msg('icone') %>
+      </div>
+      <div class="champ<%= _cls('outil') %>">
+        <label for="outil">Outil interactif</label>
+        <select id="outil" name="outil"<%- _attr('outil') %>>
+<% aide.outils.forEach(function (o) { %>          <option value="<%= o.cle %>"<%= _v('outil') === o.cle ? ' selected' : '' %>><%= o.libelle %></option>
+<% }); %>        </select>
+        <%- _msg('outil') %>
+      </div>
+      <div class="champ<%= _cls('sections') %>">
+        <label for="sections">Sections de la fiche</label>
+        <span class="aide" id="sections-aide">Une section par bloc, les blocs séparés par une ligne contenant seulement <code>---</code>. La première ligne d’un bloc donne le type, puis le titre après deux points.</span>
+        <textarea id="sections" name="sections" rows="18" required aria-describedby="sections-aide<%= _err('sections') ? ' sections-erreur' : '' %>"<%= _err('sections') ? ' aria-invalid="true"' : '' %>><%= _v('sections') %></textarea>
+        <%- _msg('sections') %>
+      </div>
+      <details class="aide-format">
+        <summary>Comment écrire les sections (exemple)</summary>
+        <p>Types disponibles :</p>
+        <ul>
+<% aide.types.forEach(function (t) { %>          <li><code><%= t.cle %></code> — <%= t.libelle %></li>
+<% }); %>        </ul>
+        <pre><code>texte: Pourquoi c’est important
+Écrivez ici un ou plusieurs paragraphes.
+---
+saviez_vous: Le saviez-vous ?
+Une anecdote courte, affichée dans un encadré.
+---
+probleme: Problème 1 : le manque de protéines
+Décrivez le problème.
+Conseil : écrivez ici le conseil, il s’affiche dans un encadré vert.
+---
+liste: À retenir
+- Premier point
+- Deuxième point</code></pre>
+        <p>Une section <code>probleme</code> doit porter un titre, et son conseil commence par une ligne <code>Conseil :</code>. Aucun code HTML n’est accepté : tout est affiché tel quel.</p>
+      </details>
+      <div class="actions">
+        <button type="submit" class="bouton">Enregistrer</button>
+        <a class="bouton bouton-secondaire" href="/interne/conseils">Annuler</a>
+      </div>
+    </form>
+<%- include('partials/fin') %>

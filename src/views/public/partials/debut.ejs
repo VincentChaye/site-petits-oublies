@@ -1,15 +1,22 @@
 <%
-  /* Variables : page {title, meta, url}, baseUrl, actif (accueil|animaux|refuge|contact),
+  /* Variables : page {title, meta, url}, baseUrl,
+     actif (accueil|missions|adopter|famille|soutenir|conseils|contact),
      fil [{nom, url}] (facultatif), ld [objets JSON-LD] (facultatif), robots (facultatif). */
   const _base = String(locals.baseUrl || '').replace(/\/$/, '');
   const _canon = _base + page.url;
-  const _ld = [{
+  const _asso = locals.association || {};
+  const _reseaux = (_asso.reseaux || []).filter(function (r) { return r.url; });
+  const _org = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    name: 'Refuge des Quatre Vents (site de démonstration)',
+    '@type': 'NGO',
+    name: _asso.nom || 'Les Petits Oubliés',
     url: _base + '/',
-    description: 'Refuge fictif utilisé pour une démonstration : aucune structure réelle.'
-  }].concat(locals.ld || []);
+    description: _asso.baseline || ''
+  };
+  if (_asso.email) _org.email = _asso.email;
+  if (_asso.telephone_e164) _org.telephone = _asso.telephone_e164;
+  if (_reseaux.length) _org.sameAs = _reseaux.map(function (r) { return r.url; });
+  const _ld = [_org].concat(locals.ld || []);
   if (locals.fil && locals.fil.length) {
     _ld.push({
       '@context': 'https://schema.org',
@@ -21,8 +28,11 @@
   }
   const _nav = [
     { cle: 'accueil', nom: 'Accueil', url: '/' },
-    { cle: 'animaux', nom: 'Animaux', url: '/animaux' },
-    { cle: 'refuge', nom: 'Le refuge', url: '/refuge' },
+    { cle: 'missions', nom: 'Nos missions', url: '/nos-missions' },
+    { cle: 'adopter', nom: 'Adopter', url: '/adopter' },
+    { cle: 'famille', nom: 'Famille d’accueil', url: '/famille-accueil' },
+    { cle: 'soutenir', nom: 'Nous soutenir', url: '/nous-soutenir' },
+    { cle: 'conseils', nom: 'Conseils', url: '/conseils' },
     { cle: 'contact', nom: 'Contact', url: '/contact' }
   ];
 %><!DOCTYPE html>
@@ -36,24 +46,28 @@
   <link rel="canonical" href="<%= _canon %>">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="Les Petits Oubliés">
   <meta property="og:title" content="<%= page.title %>">
   <meta property="og:description" content="<%= page.meta %>">
   <meta property="og:url" content="<%= _canon %>">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/main.css">
   <script src="/js/main.js" defer></script>
-<% _ld.forEach(function (o) { %>  <script type="application/ld+json"><%- JSON.stringify(o).replace(/</g, '\\u003c') %></script>
+<% if (locals.scripts) { locals.scripts.forEach(function (src) { %>  <script src="<%= src %>" defer></script>
+<% }); } %><% _ld.forEach(function (o) { %>  <script type="application/ld+json"><%- JSON.stringify(o).replace(/</g, '\\u003c') %></script>
 <% }); %></head>
 <body>
   <a class="evitement" href="#contenu">Aller au contenu</a>
-  <div class="bandeau-demo" role="note" aria-label="Avertissement">
-    <p>Site de démonstration : le refuge, ses animaux et ses coordonnées sont fictifs.</p>
-  </div>
   <header class="entete">
     <div class="entete-interieur">
-      <a class="marque" href="/">Refuge des Quatre Vents</a>
-      <nav class="nav" aria-label="Navigation principale">
-        <ul>
+      <div class="entete-barre">
+        <a class="marque" href="/">
+          <img src="/img/marque/logo.svg" alt="<%= (_asso.nom || 'Les Petits Oubliés') + ', association de protection animale' %>" width="320" height="56">
+        </a>
+        <button type="button" class="bouton-menu" hidden aria-expanded="false" aria-controls="menu-principal">Menu</button>
+      </div>
+      <nav class="nav" data-menu aria-label="Navigation principale">
+        <ul id="menu-principal">
 <% _nav.forEach(function (n) { %>          <li><a href="<%= n.url %>"<% if (locals.actif === n.cle) { %> aria-current="page"<% } %>><%= n.nom %></a></li>
 <% }); %>        </ul>
       </nav>

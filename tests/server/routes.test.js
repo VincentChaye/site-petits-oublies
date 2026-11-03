@@ -68,7 +68,8 @@ before(async () => {
     logger: { error() {} },
     mount(a) {
       a.use('/interne', createInterneRouter({ contenu, soumissions, vues, social, secret: SECRET, seuil: 5 }));
-      a.use(createPublicRouter({ contenu, soumissions, vues, baseUrl: 'http://127.0.0.1', secret: SECRET, logger: { error() {}, warn() {} } }));
+      // Limite de débit relevée : la suite envoie bien plus de 10 formulaires.
+      a.use(createPublicRouter({ contenu, soumissions, vues, baseUrl: 'http://127.0.0.1', secret: SECRET, maxEnvois: 500, logger: { error() {}, warn() {} } }));
     },
   });
   serveur = app.listen(0, '127.0.0.1');
@@ -83,11 +84,15 @@ after(async () => {
   rmSync(dossier, { recursive: true, force: true });
 });
 
-test('pages publiques : 200, titres attendus, aucun cookie', async () => {
+test('pages publiques : les sept pages répondent 200, sans cookie', async () => {
   for (const [chemin, attendu] of [
-    ['/', 'Refuge des Quatre Vents'],
-    ['/animaux', 'Animaux à adopter'],
-    ['/refuge', 'Le refuge'],
+    ['/', 'Les Petits Oubliés'],
+    ['/nos-missions', 'prolifération féline'],
+    ['/adopter', 'Adopter un animal'],
+    ['/famille-accueil', 'Devenir famille d’accueil'],
+    ['/nous-soutenir', 'Nous soutenir'],
+    ['/conseils', 'Fiches conseils'],
+    ['/conseils/alimentation-du-chat', 'Bien nourrir son chat'],
     ['/contact', 'Contact'],
     ['/mentions-legales', 'Mentions légales'],
     ['/confidentialite', 'confidentialité'],
@@ -101,20 +106,51 @@ test('pages publiques : 200, titres attendus, aucun cookie', async () => {
   }
 });
 
-test('catalogue : filtres appliqués, animaux adoptés masqués', async () => {
-  const tous = await (await obtenir('/animaux')).text();
-  const adopte = contexte.contenu.animaux.find((a) => a.statut !== 'disponible');
-  assert.ok(adopte, 'le jeu de données doit contenir un animal adopté');
-  assert.ok(!tous.includes(`/animaux/${adopte.slug}"`), 'un animal adopté ne doit pas figurer au catalogue');
+test('redirections 301 : les anciennes adresses restent suivies', async () => {
+  for (const [ancienne, nouvelle] of [
+    ['/refuge', '/nos-missions'],
+    ['/animaux', '/adopter'],
+    ['/animaux?espece=chat', '/adopter?espece=chat'],
+    ['/refuge/benevolat', '/nous-soutenir#formulaire-benevolat'],
+    ['/refuge/don', '/nous-soutenir#formulaire-adhesion'],
+  ]) {
+    const r = await obtenir(ancienne);
+    assert.equal(r.status, 301, `${ancienne} devrait répondre 301`);
+    assert.equal(r.headers.get('location'), nouvelle);
+  }
+});
 
-  const chats = await (await obtenir('/animaux?espece=chat')).text();
-  for (const a of contexte.contenu.disponibles) {
+test('mention RGPD présente sous chaque formulaire public', async () => {
+  for (const chemin of ['/contact', '/famille-accueil', '/nous-soutenir', '/animaux/biscotte/interet']) {
+    const html = await (await obtenir(chemin)).text();
+    assert.match(html, /Vos données/, `${chemin} : mention RGPD absente`);
+    assert.match(html, /Conservation : 12 mois/, `${chemin} : durée de conservation absente`);
+    assert.match(html, /href="\/confidentialite"/, `${chemin} : lien vers la politique absent`);
+  }
+});
+
+test('catalogue : « en soins » visible, « adopté » masqué, filtres appliqués', async () => {
+  const tous = await (await obtenir('/adopter')).text();
+  const adopte = contexte.contenu.animaux.find((a) => a.statut === 'adopte');
+  const enSoins = contexte.contenu.animaux.find((a) => a.statut === 'en_soins');
+  assert.ok(adopte, 'le jeu de données doit contenir un animal adopté');
+  assert.ok(enSoins, 'le jeu de données doit contenir un animal en soins');
+  assert.ok(!tous.includes(`/animaux/${adopte.slug}"`), 'un animal adopté ne doit pas figurer au catalogue');
+  assert.ok(tous.includes(`/animaux/${enSoins.slug}"`), 'un animal en soins doit figurer au catalogue');
+  assert.match(tous, /En soins/, 'le statut est écrit en toutes lettres, pas seulement en couleur');
+
+  const chats = await (await obtenir('/adopter?espece=chat')).text();
+  for (const a of contexte.contenu.visibles) {
     const present = chats.includes(`/animaux/${a.slug}"`);
     assert.equal(present, a.espece === 'chat', `${a.slug} (${a.espece}) mal filtré`);
   }
 
-  const bidon = await obtenir('/animaux?espece=dragon');
+  const bidon = await obtenir('/adopter?espece=dragon');
   assert.equal(bidon.status, 200, 'un filtre inconnu est ignoré, pas une erreur');
+
+  // Les nouvelles espèces sont proposées au filtre dès qu'une fiche les utilise.
+  const especes = contexte.contenu.options.especes.map((o) => o.valeur);
+  for (const e of ['rongeur', 'oiseau']) assert.ok(especes.includes(e), `espèce « ${e} » absente des filtres`);
 });
 
 test('fiche animal : rendu, compteur de consultations, 404', async () => {
@@ -129,12 +165,17 @@ test('fiche animal : rendu, compteur de consultations, 404', async () => {
   assert.equal((await obtenir('/page-absente')).status, 404);
 });
 
-test('sitemap : pages principales et fiches disponibles', async () => {
+test('sitemap : sept pages, fiches conseils et animaux visibles', async () => {
   const xml = await (await obtenir('/sitemap.xml')).text();
   assert.match(xml, /<urlset/);
-  assert.ok(xml.includes(`/animaux/${contexte.contenu.disponibles[0].slug}<`));
-  const adopte = contexte.contenu.animaux.find((a) => a.statut !== 'disponible');
+  for (const u of ['/', '/adopter', '/nos-missions', '/famille-accueil', '/nous-soutenir', '/conseils', '/contact']) {
+    assert.ok(xml.includes(`${u}</loc>`), `${u} absent du sitemap`);
+  }
+  for (const c of contexte.contenu.conseils) assert.ok(xml.includes(`/conseils/${c.slug}<`), `fiche conseil ${c.slug} absente`);
+  assert.ok(xml.includes(`/animaux/${contexte.contenu.visibles[0].slug}<`));
+  const adopte = contexte.contenu.animaux.find((a) => a.statut === 'adopte');
   assert.ok(!xml.includes(`/animaux/${adopte.slug}<`), 'un animal adopté ne doit pas être dans le sitemap');
+  assert.ok(!xml.includes('/animaux</loc>'), 'l’ancienne adresse du catalogue ne doit plus être annoncée');
 });
 
 test('formulaire de contact : refus anti-spam', async () => {
@@ -170,7 +211,7 @@ test('formulaire de contact : erreurs de validation en français, puis succès',
   assert.match(await (await obtenir('/contact?envoye=1')).text(), /votre message a bien été enregistré/);
 });
 
-test("formulaire d'intérêt : lié à l'animal, refusé si déjà adopté", async () => {
+test("projet d'adoption : lié à l'animal, ouvert aux animaux en soins, refusé si adopté", async () => {
   const a = contexte.contenu.disponibles[0];
   const ok = await poster(`/animaux/${a.slug}/interet`, {
     _form_token: jetonPret(), prenom: 'Jules', email: 'jules@example.org',
@@ -182,34 +223,124 @@ test("formulaire d'intérêt : lié à l'animal, refusé si déjà adopté", asy
   assert.equal(liste.length, 1);
   assert.equal(liste[0].valeurs.animal, a.nom);
 
-  const adopte = contexte.contenu.animaux.find((x) => x.statut !== 'disponible');
+  // Un animal en soins accepte un projet d'adoption : c'est le sens du statut.
+  const soins = contexte.contenu.animaux.find((x) => x.statut === 'en_soins');
+  assert.equal((await obtenir(`/animaux/${soins.slug}/interet`)).status, 200);
+  const envoi = await poster(`/animaux/${soins.slug}/interet`, {
+    _form_token: jetonPret(), prenom: 'Alix', email: 'alix@example.org',
+    logement: 'Appartement avec balcon', message: 'Je suis prêt(e) à attendre la fin de ses soins.',
+    consentement: 'oui',
+  });
+  assert.equal(envoi.status, 303, 'un animal en soins doit accepter un projet d’adoption');
+
+  const adopte = contexte.contenu.animaux.find((x) => x.statut === 'adopte');
   const r = await obtenir(`/animaux/${adopte.slug}/interet`);
   assert.equal(r.status, 303);
   assert.equal(r.headers.get('location'), `/animaux/${adopte.slug}`);
 });
 
-test('bénévolat et parrainage : succès et animal inconnu refusé', async () => {
-  const ben = await poster('/refuge/benevolat', {
+test('bénévolat : succès depuis « Nous soutenir »', async () => {
+  const ben = await poster('/nous-soutenir/benevolat', {
     _form_token: jetonPret(), nom: 'Sam Durand', email: 'sam@example.org',
-    disponibilites: 'Samedi matin', envies: 'Promenades', consentement: 'oui',
+    disponibilites: 'Samedi matin', envies: 'Tenir un stand de collecte', consentement: 'oui',
   });
   assert.equal(ben.status, 303);
   assert.match(ben.headers.get('location'), /envoye=benevolat/);
+  assert.equal((await contexte.soumissions.compter()).benevolat, 1);
+});
 
-  const don = await poster('/refuge/don', {
-    _form_token: jetonPret(), nom: 'Sam Durand', email: 'sam@example.org',
-    type: 'parrainage', animal: contexte.contenu.disponibles[0].slug,
-    message: 'Je souhaite parrainer.', consentement: 'oui',
-  });
-  assert.equal(don.status, 303);
+/** Candidature complète de famille d'accueil. */
+const candidature = (extra = {}) => ({
+  _form_token: jetonPret(), nom: 'Durand', prenom: 'Camille', email: 'camille@example.org',
+  telephone: '06 20 79 27 08', adresse: '91390 Morsang-sur-Orge', logement: 'maison_jardin',
+  autres_animaux: 'aucun', disponibilite: 'Dès maintenant, présence en journée',
+  especes: 'chats et lapins', engagements: 'oui', consentement: 'oui', ...extra,
+});
 
-  const refus = await poster('/refuge/don', {
-    _form_token: jetonPret(), nom: 'Sam Durand', email: 'sam@example.org',
-    type: 'parrainage', animal: 'animal-inexistant', message: 'Je souhaite parrainer.', consentement: 'oui',
-  });
-  assert.equal(refus.status, 400);
-  assert.match(await refus.text(), /pas disponible/);
-  assert.equal((await contexte.soumissions.compter()).don_parrainage, 1);
+test('famille d’accueil : les cinq engagements sont obligatoires, puis succès', async () => {
+  const sansEngagements = await poster('/famille-accueil', (() => {
+    const c = candidature();
+    delete c.engagements;
+    return c;
+  })());
+  assert.equal(sansEngagements.status, 400);
+  assert.match(await sansEngagements.text(), /accepter les cinq engagements/);
+  assert.equal((await contexte.soumissions.compter()).famille_accueil, 0);
+
+  const ok = await poster('/famille-accueil', candidature());
+  assert.equal(ok.status, 303);
+  assert.match(ok.headers.get('location'), /^\/famille-accueil\?envoye=1/);
+  const liste = await contexte.soumissions.lister('famille_accueil');
+  assert.equal(liste.length, 1);
+  assert.equal(liste[0].valeurs.logement, 'maison_jardin');
+  assert.ok(!JSON.stringify(liste[0]).includes('127.0.0.1'), 'aucune IP ne doit être enregistrée');
+});
+
+/** Demande d'adhésion complète. */
+const adhesion = (extra = {}) => ({
+  _form_token: jetonPret(), nom: 'Petit', prenom: 'Zoé', adresse: '1 rue des Lilas, 91390 Morsang-sur-Orge',
+  telephone: '06 20 79 27 08', email: 'zoe@example.org', formule: 'adhesion', consentement: 'oui', ...extra,
+});
+
+test('adhésion jeune : refusée sans représentant légal, acceptée avec', async () => {
+  const sans = await poster('/nous-soutenir/adhesion', adhesion({ formule: 'adhesion_jeune' }));
+  assert.equal(sans.status, 400);
+  const html = await sans.text();
+  assert.match(html, /représentant légal/);
+  assert.equal((await contexte.soumissions.compter()).adhesion, 0, 'rien ne doit être enregistré');
+
+  const avec = await poster('/nous-soutenir/adhesion', adhesion({
+    formule: 'adhesion_jeune', representant_nom: 'Petit', representant_prenom: 'Marie',
+    representant_accord: 'oui', recu_fiscal: 'oui', photos: 'oui',
+  }));
+  assert.equal(avec.status, 303);
+  assert.match(avec.headers.get('location'), /envoye=adhesion/);
+  const [enregistree] = await contexte.soumissions.lister('adhesion');
+  assert.equal(enregistree.valeurs.representant_accord, 'oui');
+  assert.equal(enregistree.valeurs.recu_fiscal, 'oui');
+  assert.equal(enregistree.valeurs.photos, 'oui');
+});
+
+test('don libre : montant obligatoire et numérique', async () => {
+  const sansMontant = await poster('/nous-soutenir/adhesion', adhesion({ formule: 'don_libre' }));
+  assert.equal(sansMontant.status, 400);
+  assert.match(await sansMontant.text(), /montant/i);
+
+  const texte = await poster('/nous-soutenir/adhesion', adhesion({ formule: 'don_libre', montant: 'beaucoup' }));
+  assert.equal(texte.status, 400);
+
+  const ok = await poster('/nous-soutenir/adhesion', adhesion({ formule: 'don_libre', montant: '30' }));
+  assert.equal(ok.status, 303);
+  // `lister` rend la plus récente en premier.
+  const [derniere] = await contexte.soumissions.lister('adhesion');
+  assert.equal(derniere.valeurs.montant, '30');
+  // Les consentements non cochés restent vides : jamais pré-cochés, jamais déduits.
+  assert.equal(derniere.valeurs.photos, '');
+});
+
+test('IBAN et HelloAsso absents : le site affiche un marqueur, n’invente rien', async () => {
+  const html = await (await obtenir('/nous-soutenir')).text();
+  const p = contexte.contenu.soutien.paiement;
+  if (!p.iban || !p.helloasso_url) {
+    assert.match(html, /À compléter/, 'le marqueur « à compléter » doit être affiché');
+    if (!p.iban) assert.ok(!html.includes('IBAN FR'), 'aucun IBAN ne doit être inventé');
+  }
+});
+
+test('fiches conseils : liste, fiche, calculateur et 404', async () => {
+  const index = await (await obtenir('/conseils')).text();
+  assert.match(index, /alimentation-du-chat/);
+
+  const fiche = await (await obtenir('/conseils/alimentation-du-chat')).text();
+  assert.match(fiche, /Problème 1/);
+  assert.match(fiche, /Conseil de nombreux experts/);
+  // Amélioration progressive : la formule reste lisible, le script est chargé à part.
+  assert.match(fiche, /100 − protéines − matières grasses/);
+  assert.match(fiche, /src="\/js\/conseils\.js"/);
+  assert.match(fiche, /aria-live="polite"/);
+  assert.ok(!/<script(?![^>]*(?:src=|type="application\/ld\+json"))/.test(fiche), 'aucun script en ligne');
+
+  assert.equal((await obtenir('/conseils/fiche-inconnue')).status, 404);
 });
 
 test('espace interne : accès refusé sans session, secret erroné refusé', async () => {

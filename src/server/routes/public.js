@@ -1,6 +1,6 @@
 /**
- * Routes publiques : pages éditoriales, catalogue des animaux, fiches et
- * formulaires de mise en relation. Aucune de ces routes n'émet de cookie.
+ * Routes publiques : pages éditoriales, catalogue des animaux, fiches conseils
+ * et formulaires de mise en relation. Aucune de ces routes n'émet de cookie.
  * @module server/routes/public
  */
 import express from 'express';
@@ -12,6 +12,9 @@ import { verifierMemeOrigine } from '../../security/origine.js';
 export const CHAMP_PIEGE = 'site_web';
 /** Champ du jeton horodaté attendu par le même gabarit. */
 export const CHAMP_JETON = '_form_token';
+
+/** Statuts pour lesquels un projet d'adoption peut être déposé. */
+const STATUTS_OUVERTS = Object.freeze(['disponible', 'en_soins']);
 
 const etatVide = () => ({ valeurs: {}, erreurs: {}, envoye: false, erreurGenerale: false });
 
@@ -27,18 +30,29 @@ function messagesContenu(erreurs, def) {
 /**
  * Construit le routeur public.
  * @param {{contenu: any, soumissions: any, vues: any, baseUrl: string, secret: string,
- *          logger?: {error: Function, warn?: Function}, isProduction?: boolean}} deps
+ *          logger?: {error: Function, warn?: Function}, isProduction?: boolean,
+ *          maxEnvois?: number, fenetreEnvoisMs?: number}} deps
+ *   maxEnvois / fenetreEnvoisMs : limitation de débit des envois de formulaire
+ *   (10 par heure et par adresse en production ; relevé par les tests).
  * @returns {import('express').Router} Routeur.
  */
-export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret, logger = console } = {}) {
+export function createPublicRouter({
+  contenu, soumissions, vues, baseUrl, secret, logger = console,
+  maxEnvois = 10, fenetreEnvoisMs = 3600 * 1000,
+} = {}) {
   if (!contenu || !soumissions || !vues) throw new Error('createPublicRouter : contenu, soumissions et vues sont requis.');
   if (typeof secret !== 'string' || !secret) throw new Error('createPublicRouter : secret est requis.');
 
   const router = express.Router();
   const base = String(baseUrl || 'http://localhost:3000').replace(/\/$/, '');
-  const limiteur = createRateLimiter({ max: 10, windowMs: 3600 * 1000 });
+  const limiteur = createRateLimiter({ max: maxEnvois, windowMs: fenetreEnvoisMs });
   const jeton = () => issueFormToken(secret);
-  const commun = { baseUrl: base, formulaires: contenu.formulaires };
+  const commun = {
+    baseUrl: base,
+    formulaires: contenu.formulaires,
+    association: contenu.pages.association,
+    rgpdCommun: contenu.formulaires._rgpd_commun,
+  };
 
   /**
    * Contrôles communs à toute soumission : origine, honeypot, jeton horodaté, débit.
@@ -93,25 +107,36 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
     res.render('public/accueil', {
       ...commun,
       page: contenu.pages.accueil,
-      vedettes: contenu.disponibles.slice(0, 4),
+      vedettes: contenu.visibles.slice(0, 4),
     });
   });
 
+  // ── Nos missions (remplace l'ancienne page /refuge) ────────────────────────
+  router.get('/nos-missions', (req, res) => {
+    res.render('public/nos-missions', { ...commun, page: contenu.pages.nos_missions });
+  });
+  // Redirections permanentes : les anciennes adresses restent suivies.
+  router.get('/refuge', (req, res) => res.redirect(301, '/nos-missions'));
+
   // ── Catalogue ──────────────────────────────────────────────────────────────
-  router.get('/animaux', (req, res) => {
+  router.get('/adopter', (req, res) => {
     const permis = (champ, valeur) => contenu.options[champ].some((o) => o.valeur === valeur);
     const filtres = {
       espece: permis('especes', req.query.espece) ? String(req.query.espece) : '',
       tranche: permis('tranches', req.query.tranche) ? String(req.query.tranche) : '',
       taille: permis('tailles', req.query.taille) ? String(req.query.taille) : '',
     };
-    const animaux = contenu.disponibles.filter((a) => (!filtres.espece || a.espece === filtres.espece)
+    const animaux = contenu.visibles.filter((a) => (!filtres.espece || a.espece === filtres.espece)
       && (!filtres.tranche || a.tranche === filtres.tranche)
       && (!filtres.taille || a.taille === filtres.taille));
     res.render('public/animaux', { ...commun, page: contenu.pages.animaux, animaux, filtres, options: contenu.options });
   });
+  router.get('/animaux', (req, res) => {
+    const q = new URLSearchParams(Object.entries(req.query).filter(([, v]) => typeof v === 'string')).toString();
+    res.redirect(301, q ? `/adopter?${q}` : '/adopter');
+  });
 
-  // ── Fiche animal ───────────────────────────────────────────────────────────
+  // ── Fiche animal (chemin conservé : les liens déjà partagés restent valides) ─
   router.get('/animaux/:slug', (req, res, next) => {
     const animal = contenu.animal(req.params.slug);
     if (!animal) return next();
@@ -119,7 +144,7 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
     res.render('public/animal', { ...commun, animal });
   });
 
-  // ── Formulaire d'intérêt ───────────────────────────────────────────────────
+  // ── Projet d'adoption ──────────────────────────────────────────────────────
   const rendreInteret = (res, animal, etat, status = 200) => res.status(status).render('public/interet', {
     ...commun, animal, etat, formToken: jeton(),
   });
@@ -127,7 +152,7 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
   router.get('/animaux/:slug/interet', (req, res, next) => {
     const animal = contenu.animal(req.params.slug);
     if (!animal) return next();
-    if (animal.statut !== 'disponible') return res.redirect(303, `/animaux/${animal.slug}`);
+    if (!STATUTS_OUVERTS.includes(animal.statut)) return res.redirect(303, `/animaux/${animal.slug}`);
     const etat = etatVide();
     etat.envoye = req.query.envoye === '1';
     rendreInteret(res, animal, etat);
@@ -136,47 +161,96 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
   router.post('/animaux/:slug/interet', async (req, res, next) => {
     const animal = contenu.animal(req.params.slug);
     if (!animal) return next();
-    if (animal.statut !== 'disponible') return res.redirect(303, `/animaux/${animal.slug}`);
+    if (!STATUTS_OUVERTS.includes(animal.statut)) return res.redirect(303, `/animaux/${animal.slug}`);
     const r = await traiter(req, 'interet', { def: contenu.formulaires.interet, extra: { animal: animal.nom, animalSlug: animal.slug } });
     if (r.envoye) return res.redirect(303, `/animaux/${animal.slug}/interet?envoye=1#formulaire-interet`);
     if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
     rendreInteret(res, animal, r.etat, r.status);
   });
 
-  // ── Le refuge : bénévolat, dons et parrainage ──────────────────────────────
-  const rendreRefuge = (res, { etatBenevolat, etatDon } = {}, status = 200) => res.status(status).render('public/refuge', {
+  // ── Devenir famille d'accueil ──────────────────────────────────────────────
+  const rendreFamille = (res, etat, status = 200) => res.status(status).render('public/famille-accueil', {
+    ...commun, page: contenu.pages.famille_accueil, etat, formToken: jeton(),
+  });
+
+  router.get('/famille-accueil', (req, res) => {
+    rendreFamille(res, { ...etatVide(), envoye: req.query.envoye === '1' });
+  });
+
+  router.post('/famille-accueil', async (req, res) => {
+    const r = await traiter(req, 'famille_accueil', { def: contenu.formulaires.famille_accueil });
+    if (r.envoye) return res.redirect(303, '/famille-accueil?envoye=1#formulaire-famille-accueil');
+    if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
+    rendreFamille(res, r.etat, r.status);
+  });
+
+  // ── Nous soutenir : adhésion / don, matériel, bénévolat, collectes ─────────
+  /** Collectes à venir seulement : une date passée disparaît d'elle-même. */
+  const collectesAVenir = () => {
+    const aujourdhui = new Date().toISOString().slice(0, 10);
+    return contenu.soutien.collectes
+      .filter((c) => typeof c.date === 'string' && c.date >= aujourdhui)
+      .sort((a, b) => a.date.localeCompare(b.date));
+  };
+
+  const rendreSoutien = (res, { etatAdhesion, etatBenevolat } = {}, status = 200) => res.status(status).render('public/soutenir', {
     ...commun,
-    page: contenu.pages.refuge,
-    animauxDisponibles: contenu.disponibles.map((a) => ({ slug: a.slug, nom: a.nom })),
+    page: contenu.pages.soutenir,
+    soutien: contenu.soutien,
+    collectes: collectesAVenir(),
+    etatAdhesion: etatAdhesion ?? etatVide(),
     etatBenevolat: etatBenevolat ?? etatVide(),
-    etatDon: etatDon ?? etatVide(),
     formToken: jeton(),
   });
 
-  router.get('/refuge', (req, res) => {
+  router.get('/nous-soutenir', (req, res) => {
     const envoye = String(req.query.envoye || '');
-    rendreRefuge(res, {
+    rendreSoutien(res, {
+      etatAdhesion: { ...etatVide(), envoye: envoye === 'adhesion' },
       etatBenevolat: { ...etatVide(), envoye: envoye === 'benevolat' },
-      etatDon: { ...etatVide(), envoye: envoye === 'don' },
     });
   });
 
-  router.post('/refuge/benevolat', async (req, res) => {
+  router.post('/nous-soutenir/adhesion', async (req, res) => {
+    const r = await traiter(req, 'adhesion', {
+      def: contenu.formulaires.adhesion,
+      // Dépendances entre champs : vérifiées côté serveur, jamais seulement en HTML.
+      valider: (v) => {
+        const e = {};
+        if (v.formule === 'adhesion_jeune') {
+          if (!v.representant_nom) e.representant_nom = 'Indiquez le nom du représentant légal.';
+          if (!v.representant_prenom) e.representant_prenom = 'Indiquez le prénom du représentant légal.';
+          if (v.representant_accord !== 'oui') e.representant_accord = "L'accord du représentant légal est obligatoire pour une adhésion jeune.";
+        }
+        if (v.formule === 'don_libre' && !v.montant) e.montant = 'Indiquez le montant de votre don, en euros.';
+        return e;
+      },
+    });
+    if (r.envoye) return res.redirect(303, '/nous-soutenir?envoye=adhesion#formulaire-adhesion');
+    if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
+    rendreSoutien(res, { etatAdhesion: r.etat }, r.status);
+  });
+
+  router.post('/nous-soutenir/benevolat', async (req, res) => {
     const r = await traiter(req, 'benevolat', { def: contenu.formulaires.benevolat });
-    if (r.envoye) return res.redirect(303, '/refuge?envoye=benevolat#formulaire-benevolat');
+    if (r.envoye) return res.redirect(303, '/nous-soutenir?envoye=benevolat#formulaire-benevolat');
     if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
-    rendreRefuge(res, { etatBenevolat: r.etat }, r.status);
+    rendreSoutien(res, { etatBenevolat: r.etat }, r.status);
   });
 
-  router.post('/refuge/don', async (req, res) => {
-    const slugs = new Set(contenu.disponibles.map((a) => a.slug));
-    const r = await traiter(req, 'don_parrainage', {
-      def: contenu.formulaires.don_parrainage,
-      valider: (v) => (v.animal && !slugs.has(v.animal) ? { animal: 'Cet animal n’est pas disponible.' } : {}),
-    });
-    if (r.envoye) return res.redirect(303, '/refuge?envoye=don#formulaire-don');
-    if (r.retryAfterSec) res.set('Retry-After', String(r.retryAfterSec));
-    rendreRefuge(res, { etatDon: r.etat }, r.status);
+  // Anciennes adresses du refuge.
+  router.get('/refuge/benevolat', (req, res) => res.redirect(301, '/nous-soutenir#formulaire-benevolat'));
+  router.get('/refuge/don', (req, res) => res.redirect(301, '/nous-soutenir#formulaire-adhesion'));
+
+  // ── Fiches conseils ────────────────────────────────────────────────────────
+  router.get('/conseils', (req, res) => {
+    res.render('public/conseils', { ...commun, page: contenu.pages.conseils, conseils: contenu.conseils });
+  });
+
+  router.get('/conseils/:slug', (req, res, next) => {
+    const conseil = contenu.conseil(req.params.slug);
+    if (!conseil) return next();
+    res.render('public/conseil', { ...commun, conseil });
   });
 
   // ── Contact ────────────────────────────────────────────────────────────────
@@ -207,12 +281,16 @@ export function createPublicRouter({ contenu, soumissions, vues, baseUrl, secret
   router.get('/sitemap.xml', (req, res) => {
     const urls = [
       { loc: '/', priorite: '1.0' },
-      { loc: '/animaux', priorite: '0.9' },
-      { loc: '/refuge', priorite: '0.7' },
+      { loc: '/adopter', priorite: '0.9' },
+      { loc: '/nos-missions', priorite: '0.8' },
+      { loc: '/famille-accueil', priorite: '0.8' },
+      { loc: '/nous-soutenir', priorite: '0.8' },
+      { loc: '/conseils', priorite: '0.7' },
       { loc: '/contact', priorite: '0.6' },
       { loc: '/mentions-legales', priorite: '0.2' },
       { loc: '/confidentialite', priorite: '0.2' },
-      ...contenu.disponibles.map((a) => ({ loc: `/animaux/${a.slug}`, priorite: '0.8' })),
+      ...contenu.conseils.map((c) => ({ loc: `/conseils/${c.slug}`, priorite: '0.6' })),
+      ...contenu.visibles.map((a) => ({ loc: `/animaux/${a.slug}`, priorite: '0.8' })),
     ];
     const corps = urls.map((u) => `  <url><loc>${base}${u.loc}</loc><priority>${u.priorite}</priority></url>`).join('\n');
     res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${corps}\n</urlset>\n`);

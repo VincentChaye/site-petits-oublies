@@ -20,7 +20,13 @@
               <form method="post" action="/interne/animaux/<%= encodeURIComponent(a.slug) %>/statut">
                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <input type="hidden" name="_version" value="<%= a.version %>">
-                <button type="submit" class="bouton bouton-secondaire"><%= a.statut === 'disponible' ? 'Marquer adopté' : 'Marquer disponible' %><span class="contenu-cache"> : <%= a.nom %></span></button>
+                <div class="champ">
+                  <label for="statut-<%= a.slug %>">Nouveau statut<span class="contenu-cache"> de <%= a.nom %></span></label>
+                  <select id="statut-<%= a.slug %>" name="statut">
+<% Object.keys(statuts).forEach(function (cle) { %>                    <option value="<%= cle %>"<%= a.statut === cle ? ' selected' : '' %>><%= statuts[cle] %></option>
+<% }); %>                  </select>
+                </div>
+                <button type="submit" class="bouton bouton-secondaire">Enregistrer le statut<span class="contenu-cache"> de <%= a.nom %></span></button>
               </form>
             </td>
           </tr>

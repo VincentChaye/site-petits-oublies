@@ -1,5 +1,6 @@
-/* Refuge des Quatre Vents (démo) – amélioration progressive des formulaires.
-   Sans le script, le serveur valide et affiche les mêmes erreurs. Aucun JS inline. */
+/* Les Petits Oubliés – amélioration progressive : menu mobile et formulaires.
+   Sans le script, le menu reste déplié et le serveur valide les mêmes erreurs.
+   Aucun JS en ligne : la CSP interdit `unsafe-inline`. */
 (function () {
   'use strict';
 
@@ -84,7 +85,39 @@
     });
   }
 
+
+  /* Menu replié sous 600 px. Le bouton n'est révélé que si le script tourne ;
+     l'attribut data-ouvert n'existe pas sans lui, donc la liste reste visible. */
+  function initMenu() {
+    var nav = document.querySelector('nav.nav[data-menu]');
+    var bouton = document.querySelector('.bouton-menu');
+    if (!nav || !bouton) { return; }
+    var etroit = window.matchMedia('(max-width: 599px)');
+
+    function appliquer() {
+      if (etroit.matches) {
+        bouton.hidden = false;
+        if (!nav.hasAttribute('data-ouvert')) { nav.setAttribute('data-ouvert', 'non'); }
+        bouton.setAttribute('aria-expanded', nav.getAttribute('data-ouvert') === 'oui' ? 'true' : 'false');
+      } else {
+        bouton.hidden = true;
+        nav.removeAttribute('data-ouvert');
+        bouton.setAttribute('aria-expanded', 'false');
+      }
+    }
+
+    bouton.addEventListener('click', function () {
+      var ouvert = nav.getAttribute('data-ouvert') === 'oui';
+      nav.setAttribute('data-ouvert', ouvert ? 'non' : 'oui');
+      bouton.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+    });
+
+    if (typeof etroit.addEventListener === 'function') { etroit.addEventListener('change', appliquer); }
+    appliquer();
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
+    initMenu();
     Array.prototype.forEach.call(document.querySelectorAll('form[data-validation]'), initFormulaire);
 
     var cible = document.querySelector('[data-focus-initial]');

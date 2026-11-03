@@ -5,6 +5,8 @@
     { cle: 'tableau', nom: 'Tableau de bord', url: '/interne' },
     { cle: 'animaux', nom: 'Fiches animaux', url: '/interne/animaux' },
     { cle: 'soumissions', nom: 'Demandes', url: '/interne/soumissions' },
+    { cle: 'conseils', nom: 'Fiches conseils', url: '/interne/conseils' },
+    { cle: 'soutien', nom: 'Besoins et collectes', url: '/interne/soutien' },
     { cle: 'atelier', nom: 'Atelier réseaux', url: '/interne/atelier' },
     { cle: 'file', nom: 'File de validation', url: '/interne/file' },
     { cle: 'calendrier', nom: 'Calendrier', url: '/interne/calendrier' },
@@ -15,7 +17,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><%= titre %> – Espace interne (démo)</title>
+  <title><%= titre %> – Espace interne | Les Petits Oubliés</title>
   <meta name="robots" content="noindex, nofollow, noarchive">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/main.css">
@@ -24,12 +26,12 @@
 </head>
 <body class="interne">
   <a class="evitement" href="#contenu">Aller au contenu</a>
-  <div class="bandeau-demo" role="note" aria-label="Avertissement">
-    <p>Espace interne d’un site de démonstration : données fictives, publications simulées.</p>
+  <div class="bandeau-interne" role="note" aria-label="Information">
+    <p>Espace réservé à l’équipe. Les publications réseaux sont <strong>simulées</strong> : rien n’est envoyé sur Facebook ou Instagram.</p>
   </div>
   <header class="entete">
     <div class="entete-interieur">
-      <span class="marque">Espace interne – Refuge des Quatre Vents</span>
+      <span class="marque"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</span>
 <% if (!locals.sansMenu) { %>      <nav class="nav" aria-label="Navigation de l’espace interne">
         <ul>
 <% _menu.forEach(function (m) { %>          <li><a href="<%= m.url %>"<% if (locals.ecran === m.cle) { %> aria-current="page"<% } %>><%= m.nom %></a></li>

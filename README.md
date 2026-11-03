@@ -1,9 +1,17 @@
-# Refuge des Quatre Vents — site d’adoption (démonstration)
+# Les Petits Oubliés — site de l’association
 
-Site vitrine **fictif** d’un refuge animalier, en Node.js + Express + EJS, rendu côté
-serveur. Aucune structure, aucun animal, aucune coordonnée et aucun don ne sont réels :
-**aucune adoption ni paiement n’a lieu en ligne**, les formulaires déclenchent une simple
-mise en relation humaine, et les publications sur les réseaux sociaux sont **simulées**.
+Site de l’association de protection animale **Les Petits Oubliés** (RNA W912014218) :
+adoption, familles d’accueil, lutte contre la prolifération féline, adhésions, dons et
+collectes. Node.js + Express + EJS, rendu côté serveur, sans dépendance de build.
+
+**Aucune adoption et aucun paiement ne sont conclus en ligne** : les formulaires
+enregistrent une demande, l’équipe recontacte la personne. Les publications sur les
+réseaux sociaux restent **simulées** (voir « Communication sociale »).
+
+Tout le contenu éditorial — textes des pages, fiches animaux, fiches conseils, besoins en
+matériel, agenda des collectes — vit dans `content/` et se modifie depuis l’espace interne
+`/interne` ou en éditant les fichiers JSON : **aucune de ces modifications ne demande de
+développeur**. Voir « Mode d’emploi pour les bénévoles ».
 
 ## Démarrage
 
@@ -26,17 +34,40 @@ npm run test:e2e    # lance `playwright test` — voir « Tests » plus bas
 
 ## Pages
 
+Sept pages au menu principal, plus les fiches animaux, les fiches conseils et les pages légales.
+
 | Route | Contenu |
 |---|---|
-| `GET /` | accueil, 4 fiches mises en avant |
-| `GET /animaux` | catalogue filtrable (`?espece=&tranche=&taille=`) ; les animaux adoptés sont masqués |
+| `GET /` | accueil : mission, trois appels à l’action, 4 fiches mises en avant |
+| `GET /nos-missions` | lutte contre la prolifération féline, accueil des animaux (long terme ou temporaire) |
+| `GET /adopter` | catalogue filtrable (`?espece=&tranche=&taille=`) ; les animaux **adoptés** sont masqués, les animaux **en soins** restent affichés avec leur badge |
 | `GET /animaux/:slug` | fiche détaillée ; chaque consultation est comptée |
-| `GET POST /animaux/:slug/interet` | formulaire « cet animal m’intéresse » (fiches disponibles seulement) |
-| `GET /refuge` + `POST /refuge/benevolat` `POST /refuge/don` | mission, visites, bénévolat, dons et parrainage |
-| `GET POST /contact` | formulaire de contact |
+| `GET POST /animaux/:slug/interet` | formulaire « projet d’adoption », ouvert aux fiches `disponible` **et** `en_soins` |
+| `GET POST /famille-accueil` | devenir famille d’accueil : prise en charge, garanties, cinq engagements, sociabilisation, familles relais, formulaire de candidature |
+| `GET /nous-soutenir` + `POST /nous-soutenir/adhesion` `POST /nous-soutenir/benevolat` | adhésion et don, moyens de règlement, don de matériel, agenda des collectes, bénévolat |
+| `GET /conseils`, `GET /conseils/:slug` | index des fiches conseils et fiche détaillée (JSON-LD `Article`) |
+| `GET POST /contact` | coordonnées réelles, réseaux sociaux, formulaire de contact |
 | `GET /mentions-legales` `GET /confidentialite` | pages légales |
-| `GET /sitemap.xml` `GET /robots.txt` | `sitemap.xml` : pages publiques et fiches disponibles (rien de `/interne`). `robots.txt` : fichier statique `public/robots.txt`, qui contient seulement `User-agent: *` et `Disallow: /interne` (pas de ligne `Sitemap:`) |
+| `GET /sitemap.xml` `GET /robots.txt` | `sitemap.xml` : les sept pages, les fiches conseils et les animaux visibles (rien de `/interne`). `robots.txt` : fichier statique `public/robots.txt`, qui contient seulement `User-agent: *` et `Disallow: /interne` (pas de ligne `Sitemap:`) |
 | toute autre URL | page 404 en français |
+
+**Anciennes adresses** (redirections permanentes 301, pour que les liens déjà partagés
+continuent de fonctionner) : `/refuge → /nos-missions`, `/animaux → /adopter` (avec les
+paramètres de filtre), `/refuge/benevolat` et `/refuge/don → /nous-soutenir`.
+Les fiches gardent leur adresse `/animaux/:slug`.
+
+### Statuts d’un animal
+
+| Statut | Libellé affiché | Catalogue `/adopter` | Projet d’adoption | Publication réseaux |
+|---|---|---|---|---|
+| `disponible` | Adoptable | oui | oui | oui |
+| `en_soins` | En soins | oui, avec badge | oui | **non** (l’équipe choisit quand en parler) |
+| `adopte` | Adopté | non | non (redirection vers la fiche) | non |
+
+Le catalogue, les filtres et l’accueil utilisent l’index `visibles` (`disponible` + `en_soins`) ;
+l’atelier réseaux et les relances automatiques utilisent `disponibles` (`disponible` seul).
+
+Espèces reconnues : `chat`, `chien`, `lapin`, `rongeur`, `oiseau`, `nac`.
 
 Espace interne, protégé par le secret partagé et interdit à l’indexation (`Disallow: /interne` dans `robots.txt`, balise `<meta name="robots" content="noindex, nofollow, noarchive">` dans les pages et en-tête `X-Robots-Tag: noindex` sur toutes les réponses `/interne`) :
 
@@ -44,7 +75,9 @@ Espace interne, protégé par le secret partagé et interdit à l’indexation (
 |---|---|
 | `GET POST /interne/connexion`, `POST /interne/deconnexion` | session (cookie `sid` limité au chemin `/interne`) |
 | `GET /interne` | classement des fiches par consultations, alertes sous le seuil |
-| `GET /interne/animaux`, `GET POST /interne/animaux/nouveau`, `GET POST /interne/animaux/:slug/modifier`, `POST /interne/animaux/:slug/statut` | liste, création, modification et bascule disponible/adopté des fiches (champ `_version`, voir plus bas) |
+| `GET /interne/animaux`, `GET POST /interne/animaux/nouveau`, `GET POST /interne/animaux/:slug/modifier`, `POST /interne/animaux/:slug/statut` | liste, création, modification et **choix du statut** des fiches animaux (`disponible`, `en_soins`, `adopte` ; champ `_version`, voir plus bas) |
+| `GET /interne/conseils`, `GET POST /interne/conseils/nouveau`, `GET POST /interne/conseils/:slug/modifier`, `POST /interne/conseils/:slug/supprimer` | fiches conseils : liste, création, modification, suppression (`_version`) |
+| `GET /interne/soutien`, `POST /interne/soutien/besoins[/:id/supprimer]`, `POST /interne/soutien/collectes[/:id/supprimer]` | besoins en matériel et agenda des collectes (`_version`) |
 | `GET /interne/file` + `POST /interne/file/:id/{approuver,modifier,rejeter,reprendre}` | file de validation, groupée par réseau (posts « en validation » et « en échec ») |
 | `GET /interne/atelier`, `POST /interne/atelier/apercu`, `POST /interne/atelier/deposer` | rédaction manuelle d'un post, aperçu (sans écriture), dépôt dans la file |
 | `GET /interne/calendrier` | envois planifiés, envoyés ou en échec, regroupés par jour (heure de Paris) |
@@ -52,7 +85,9 @@ Espace interne, protégé par le secret partagé et interdit à l’indexation (
 | `GET /interne/soumissions[?type=&statut=]`, `POST /interne/soumissions/:id` | soumissions des formulaires, filtre par statut, mise à jour du statut et de la note |
 | `GET /interne/soumissions/export.csv[?type=]` | export CSV d'un type de soumission |
 
-Types de soumissions (`?type=`) : `interet` (par défaut), `contact`, `benevolat`, `don_parrainage`.
+Types de soumissions (`?type=`) : `interet` (par défaut, « Projets d’adoption »),
+`famille_accueil`, `adhesion`, `benevolat`, `contact`, et `don_parrainage` — ce dernier n’est
+plus proposé au public, le type reste reconnu pour consulter et exporter les demandes déjà reçues.
 Toute écriture (`POST`) exige le jeton CSRF de la session.
 
 ### Soumissions : statut et note
@@ -70,7 +105,7 @@ même liste). Le champ `modifieLe` est mis à jour à chaque suivi.
 | `statut` | soumissions | suivi de la demande (voir ci-dessus) ; `nouvelle` par défaut |
 | `note` | soumissions | note interne libre, vide par défaut |
 | `animalSlug` | `valeurs` des soumissions « intérêt » | slug de la fiche visée, écrit à l'envoi du formulaire ; sert au décompte des demandes par fiche du tableau de bord |
-| `_version` | fiches de `content/animaux.json` | entier valant 1 à la création puis incrémenté à chaque modification ou bascule de statut depuis `/interne/animaux` ; une version périmée est refusée (409). Une fiche sans `_version` est en version 0 |
+| `_version` | fiches de `content/animaux.json`, fiches de `content/conseils.json`, objet `content/soutien.json` | entier valant 1 à la création puis incrémenté à chaque écriture depuis `/interne` ; une version périmée est refusée (**409**), de sorte que deux bénévoles qui modifient en même temps ne s’écrasent pas. Une entrée sans `_version` est en version 0 |
 
 Au démarrage, une **migration idempotente** donne `statut: nouvelle` et une note vide aux anciennes
 soumissions, et déduit `animalSlug` quand le nom de l'animal correspond à une seule fiche.
@@ -89,12 +124,56 @@ sont groupées (au plus une toutes les 5 s) et le reste est écrit à l'arrêt p
 protégé contre l'injection de formules). Colonnes : `Reçue le`, puis les champs du formulaire du
 type choisi (pour `interet`, `Animal concerné` en premier), puis `Statut` (libellé), `Note`,
 `Modifiée le`. Un type inconnu retombe sur `interet`. Les libellés des champs viennent de
-`content/formulaires.json`.
+`content/formulaires.json` : la clé `label` sert au site, et la clé facultative `label_export`
+donne un en-tête court aux cases à cocher dont le libellé est une phrase entière
+(« Reçu fiscal demandé », « Publication de photos acceptée », « Accord du représentant légal »…).
+
+### Fiches conseils
+
+`content/conseils.json` est un **tableau** de fiches :
+`{ slug, titre, resume, icone, outil, sections: [...], _version }`.
+
+Chaque section porte un `type` qui pilote son rendu — c'est ce gabarit réutilisable qui
+permet d'ajouter « sociabilisation », « accueil d'un lapin », etc. sans toucher au code :
+
+| `type` | Rendu | Champs |
+|---|---|---|
+| `texte` | paragraphe, titre facultatif | `titre?`, `texte` |
+| `liste` | liste à puces | `titre?`, `elements[]` |
+| `conseil` | encadré vert | `titre?`, `texte` |
+| `saviez_vous` | encadré bordé | `titre?`, `texte` |
+| `probleme` | titre + texte, suivis d'un encadré « Conseil de nombreux experts » | `titre` (obligatoire), `texte`, `conseil?` |
+
+Un `type` inconnu fait **échouer le démarrage** plutôt que d'afficher une page vide.
+`outil` vaut `""` (aucun) ou `"glucides"` : dans ce dernier cas, et seulement dans ce
+cas, la page charge `public/js/conseils.js` et affiche le **calculateur du taux de
+glucides** (`100 − protéines − matières grasses − cendres − fibres − humidité`). Le
+résultat est annoncé dans une zone `aria-live="polite"` ; sans JavaScript, la formule
+reste affichée en clair et les champs de saisie restent masqués.
+
+Aucun HTML n'est accepté dans les champs : le texte est échappé à l'affichage.
+
+### Nous soutenir : paiement, besoins, collectes
+
+`content/soutien.json` : `{ paiement, besoins: [], collectes: [] }`.
+
+- **`paiement`** s'édite dans le fichier. `iban` et `helloasso_url` sont volontairement
+  **vides** : tant qu'ils le sont, le site affiche un encadré « À compléter » et n'invente
+  aucune coordonnée bancaire ni aucun lien. Le chèque et les espèces, eux, sont décrits.
+  Le site ne traite **aucun** paiement et le dit sur la page.
+- **`besoins`** et **`collectes`** s'éditent depuis `/interne/soutien`. Une collecte dont
+  la date est passée **disparaît automatiquement** du site public ; elle reste visible
+  dans l'espace interne, marquée « Passée : masquée du site », jusqu'à sa suppression.
+
+Le formulaire d'**adhésion** accepte trois formules : `adhesion` (20 €),
+`adhesion_jeune` (0 à 18 ans, 10 €) et `don_libre` (montant saisi). Deux dépendances sont
+vérifiées **côté serveur**, pas seulement en HTML : une adhésion jeune exige le nom, le
+prénom et l'accord du représentant légal ; un don libre exige un montant entier en euros.
 
 ### Atelier de publication
 
 `/interne/atelier` permet de rédiger un post pour **Instagram ou Facebook** seulement, à propos
-d'une fiche **disponible** (une fiche adoptée est refusée). Le formulaire peut être prérempli par
+d'une fiche **adoptable** (une fiche adoptée ou en soins est refusée). Le formulaire peut être prérempli par
 `GET` (`?animal=&reseau=&gabarit=&cadrage=`) depuis `content/posts-templates.json` (gabarits
 `arrivee`, `peu_consulte`, `relance_periodique`) avec le bouton « Préremplir avec le gabarit » (étape « 1. Choix de la fiche, du réseau et du gabarit » ; il remplace le texte et les hashtags saisis). « Voir l'aperçu » n'écrit rien ; « Déposer dans la file de validation » crée un post
 `en_validation`, visible dans `/interne/file`. L'image et le lien viennent toujours de la fiche.
@@ -115,12 +194,17 @@ par espaces ou virgules, doublons retirés. Le connecteur Facebook déclare une 
 ## Organisation du code
 
 ```
-content/        textes éditoriaux et fiches animaux (JSON, source de vérité)
-public/         CSS, JS d'amélioration progressive, images, robots.txt
+content/        contenu éditorial, source de vérité (JSON) :
+                pages.json (textes des pages + bloc « association »), formulaires.json,
+                animaux.json, conseils.json, soutien.json, posts-templates.json
+public/         CSS, JS d'amélioration progressive (menu mobile, validation, calculateur),
+                images (img/marque/ : logo, motif de pattes, flyer), robots.txt
 src/security/   configuration, en-têtes, sessions, CSRF, provenance, validation, anti-spam, CSV, purge
 src/server/     application Express, routes, contenu, compteur de vues, soumissions, stockage
 src/integrations/  service de communication sociale et connecteurs (simulation)
 src/views/      gabarits EJS (public/ et interne/)
+documents-association/  documents fournis par l'association (affiches, flyer, bulletin
+                d'adhésion, fiche conseils) et ce qui en a été repris — hors de public/
 tests/          tests d'intégration des routes (node:test) et tests/e2e/ (Playwright + axe-core)
 data/           données générées à l'exécution (non suivi par git)
 ```
@@ -149,6 +233,14 @@ data/           données générées à l'exécution (non suivi par git)
 - Données : validation et assainissement de toutes les saisies, échappement à l’affichage,
   écriture atomique des fichiers JSON, export CSV protégé contre l’injection de formules,
   **purge automatique des soumissions de plus de 12 mois** au démarrage.
+- **RGPD** : chaque formulaire affiche, juste avant son bouton d’envoi, sa finalité, sa base
+  légale (le consentement), son destinataire (l’association seule), la durée de conservation
+  (12 mois), les droits d’accès, de rectification et d’effacement, et l’adresse de contact.
+  Le texte vient de la clé `rgpd` du formulaire dans `content/formulaires.json`, complétée
+  par `_rgpd_commun`. Le **consentement au recontact** et l’**autorisation de publication de
+  photos** sont deux cases distinctes, jamais pré-cochées : deux finalités, deux cases.
+  L’adhésion jeune exige l’accord du représentant légal, rappelé dans la politique de
+  confidentialité.
 
 ## Communication sociale (simulation)
 
@@ -185,18 +277,22 @@ npx playwright install chromium  # une seule fois : télécharge le navigateur d
 npm run test:e2e                 # playwright test (tests/e2e/)
 ```
 
-- `npm test` : 193 tests unitaires et d'intégration (serveur monté en mémoire, aucun navigateur).
-- `npm run test:e2e` : 61 tests de bout en bout dans un vrai Chromium, répartis en cinq fichiers de
-  `tests/e2e/` :
+- `npm test` : 220 tests unitaires et d'intégration (serveur monté en mémoire, aucun navigateur),
+  dont `tests/server/conseils-interne.test.js` et `tests/server/soutien-interne.test.js` pour les
+  deux nouveaux écrans (CSRF, `_version` et 409, validation en liste blanche).
+- `npm run test:e2e` : 100 tests de bout en bout dans un vrai Chromium, répartis en huit
+  fichiers de `tests/e2e/` :
 
   | Fichier | Ce qu'il couvre |
   |---|---|
-  | `public.spec.js` | toutes les pages publiques (statut, titre, description, canonique, JSON-LD), absence de défilement horizontal et barre de navigation complète à **320, 768, 1024 et 1600 px**, variables d'espacement servies, `robots.txt` / `sitemap.xml` sans `/interne`, aucun lien public vers `/interne`, aucun cookie public |
-  | `fiches-animaux.spec.js` | créer une fiche depuis `/interne`, la voir sur `/animaux`, slug en doublon et saisie invalide refusés en français, modification visible côté public, bascule adopté/disponible |
-  | `demandes.spec.js` | formulaire d'intérêt public → `/interne/soumissions`, passage de « nouvelle » à « traitée » avec note, filtre par statut, export CSV (colonnes `Statut`, `Note`, `Modifiée le`, sans injection de formule), comptage sur le tableau de bord |
+  | `public.spec.js` | les sept pages et les pages hors menu (statut, titre, description, canonique, JSON-LD `NGO`), absence de toute mention de démonstration, logo avec texte de remplacement, redirections 301, absence de défilement horizontal à **320, 768, 1024 et 1600 px**, **menu mobile** (replié, dépliable, `aria-expanded`, et déplié d'office **sans JavaScript**), éléments de marque servis, `robots.txt` / `sitemap.xml` sans `/interne`, aucun lien public vers `/interne`, aucun cookie public |
+  | `fiches-animaux.spec.js` | créer une fiche depuis `/interne`, la voir sur `/adopter`, slug en doublon et saisie invalide refusés en français, modification visible côté public, les trois statuts (« en soins » reste au catalogue et accepte un projet d'adoption, « adopté » en sort) |
+  | `demandes.spec.js` | projet d'adoption public → `/interne/soumissions`, passage de « nouvelle » à « traitée » avec note, filtre par statut, export CSV (colonnes `Statut`, `Note`, `Modifiée le`, sans injection de formule), comptage sur le tableau de bord |
+  | `soutien.spec.js` | adhésion jeune refusée sans représentant légal puis acceptée avec, cases de consentement distinctes et jamais pré-cochées, mention RGPD, marqueur « à compléter » au lieu d'un IBAN inventé, demande retrouvée dans `/interne/soumissions` et dans l'export CSV ; besoins et collectes ajoutés depuis `/interne/soutien`, collecte passée masquée du site |
+  | `conseils.spec.js` | index → fiche, fil d'Ariane, rendu des types de section, JSON-LD `Article`, **calculateur de glucides** (saisie, résultat, annonce `aria-live`, bornes, formule lisible sans JavaScript) |
   | `atelier.spec.js` | aperçu Instagram (carré 1080×1080, coupe à 125 caractères, lien non cliquable) et Facebook (1200×628, lien cliquable), limite de hashtags, dépôt dans la file puis approbation, refus d'une fiche adoptée |
   | `securite.spec.js` | accès refusé sans session, secret erroné, déconnexion, CSP sans `unsafe-inline`, `no-store` sur `/interne`, aucun style/script en ligne, jeton CSRF exigé, écriture `cross-site` refusée, délai anti-robot |
-  | `accessibilite.spec.js` | **axe-core** sur 8 pages publiques et 9 pages internes (WCAG 2.0/2.1 A et AA) : zéro violation `critical` ou `serious` ; lien d'évitement, focus visible, formulaire atteignable au clavier, champ piège hors tabulation |
+  | `accessibilite.spec.js` | **axe-core** sur 12 pages publiques et 13 pages internes (WCAG 2.0/2.1 A et AA) : zéro violation `critical` ou `serious` ; menu mobile déplié et calculateur rempli également audités ; lien d'évitement, focus visible, formulaires atteignables au clavier, champ piège hors tabulation |
 
 **Isolation** : `tests/e2e/serveur-de-test.js` recopie `content/` et vide `data/` dans `.tmp-e2e/`
 avant de démarrer le serveur (`CONTENT_DIR` / `DATA_DIR`), sur le port 3100 et avec un secret de
@@ -208,29 +304,104 @@ fichiers JSON. `.tmp-e2e/`, `playwright-report/` et `test-results/` sont ignoré
 d'échec liste `impact · règle (n élément(s)) : aide`. Le rapport HTML complet s'obtient avec
 `CI=1 npm run test:e2e` (sortie dans `playwright-report/`).
 
-## Parcours de démonstration
+## Mode d’emploi pour les bénévoles
 
-1. `npm start`, puis `http://localhost:3000/interne/connexion` : saisir `INTERNAL_SECRET` dans le champ « Secret », puis « Se connecter ».
-2. Sur le site public, visiter plusieurs fois une fiche (par ex. `/animaux/biscotte`) : chaque
-   consultation est comptée (écriture sur disque différée de 5 s).
-3. Sur une fiche disponible, ouvrir `/animaux/:slug/interet` et envoyer le formulaire : la demande
-   est enregistrée avec `animalSlug`.
-4. `/interne` : classement par consultations, totaux 7 et 30 jours, demandes par fiche.
-5. Menu « Soumissions » (`/interne/soumissions`) : passer la demande en « En cours » ou « Traitée » et
-   ajouter une note (bouton « Enregistrer »), filtrer par statut (« Filtrer »), puis « Exporter en CSV ».
-6. Menu « Fiches animaux » (`/interne/animaux`) : « Créer une fiche », modifier une fiche ou la basculer
-   avec « Marquer adopté » / « Marquer disponible » (une fiche adoptée est masquée du catalogue public).
-7. Menu « Atelier de publication » (`/interne/atelier`) : à l'étape « 1. Choix de la fiche, du réseau et du
-   gabarit », choisir une fiche, un réseau (Instagram ou Facebook) et un gabarit (« Texte libre » = aucun), cliquer sur
-   « Préremplir avec le gabarit » ; à l'étape « 2. Rédaction », « Voir l'aperçu », puis « Déposer dans la file de validation ».
-8. Menu « File de validation » (`/interne/file`) : « Enregistrer la modification », « Approuver »
-   (champ facultatif « Envoi prévu le ») ou « Rejeter » le post déposé (ou ceux proposés par les scans).
-9. Menus « Calendrier » et « Journal d'envoi » (`/interne/calendrier`, `/interne/journal`) : suivre l'envoi simulé (l'ordonnanceur traite les
-   posts planifiés toutes les 30 s). Pour montrer les reprises, démarrer avec
-   `SOCIAL_SIMULATE_FAILURE=instagram` (ou un autre réseau), puis, une fois le post en échec, utiliser « Reprendre l'envoi » dans la file.
+Tout se fait depuis `http://localhost:3000/interne/connexion`, avec le secret partagé
+(`INTERNAL_SECRET`). Aucune de ces opérations ne demande de redémarrer le serveur : la
+modification est en ligne dès l’enregistrement.
 
-Les routes de ces étapes existent dans le code ; l'enchaînement complet n'a pas été rejoué à la
-main pour cette rédaction (les cas couverts sont dans `tests/server/`).
+### Ajouter un animal
+
+1. Menu **« Fiches animaux » → « Créer une fiche »**.
+2. L’**identifiant (slug)** est définitif : il sert d’adresse (`/animaux/mon-slug`).
+   Lettres minuscules sans accent, chiffres et tirets.
+3. Remplir nom, espèce, race, âge, tranche d’âge, taille, sexe, date d’arrivée, statut,
+   caractère, besoins et histoire. Tous ces champs sont obligatoires.
+4. **Photo** : déposer d’abord le fichier dans `public/img/animaux/`, puis saisir son
+   chemin (`/img/animaux/mon-animal-1.jpg`) et une **description** de l’image — elle est
+   lue par les personnes qui n’en voient pas le contenu.
+5. **Changer le statut** plus tard : dans la liste, choisir « Adoptable », « En soins » ou
+   « Adopté » puis « Enregistrer le statut ». Un animal en soins reste visible au catalogue
+   avec son badge ; un animal adopté quitte le site.
+
+### Ajouter une fiche conseil
+
+1. Menu **« Fiches conseils » → « Créer une fiche »**.
+2. Identifiant, titre et **résumé** (le résumé s’affiche sur la liste et dans les moteurs
+   de recherche).
+3. **Sections** : une par bloc, les blocs séparés par une ligne contenant seulement `---`.
+   La première ligne d’un bloc donne le type, puis le titre après deux points. Le dépliant
+   « Comment écrire les sections » du formulaire montre un exemple complet. Types :
+   `texte`, `liste`, `conseil`, `saviez_vous`, `probleme` (voir « Fiches conseils »).
+4. **Outil interactif** : laisser « Aucun », sauf pour une fiche d’alimentation féline où
+   « Calculateur du taux de glucides » ajoute l’outil de calcul.
+5. Enregistrer : la fiche est aussitôt en ligne sur `/conseils`, et dans le `sitemap.xml`.
+
+### Ajouter une collecte ou un besoin en matériel
+
+1. Menu **« Besoins et collectes »**.
+2. **Besoin** : un titre (« Croquettes ») et un détail facultatif. Il s’affiche aussitôt
+   dans « Don de matériel » sur `/nous-soutenir`.
+3. **Collecte** : date, lieu (nom du magasin), ville, horaires et détail facultatifs.
+   Une fois la date passée, la collecte **disparaît d’elle-même** du site public ; elle
+   reste dans cette liste, marquée « Passée : masquée du site », jusqu’à sa suppression.
+4. Si quelqu’un d’autre a modifié la page entre-temps, l’enregistrement est refusé avec un
+   message : recharger la page, puis recommencer. Rien n’est écrasé en silence.
+
+### Suivre les demandes reçues
+
+Menu **« Demandes »** : un onglet par type (projets d’adoption, candidatures famille
+d’accueil, adhésions et dons, bénévolat, messages). Pour chaque demande : passer le statut
+à « En cours » ou « Traitée », ajouter une note interne, puis « Enregistrer ». Le bouton
+« Exporter en CSV » télécharge l’onglet courant, ouvrable dans un tableur.
+
+Les demandes sont **supprimées automatiquement au bout de 12 mois**, avec leurs notes.
+
+### Modifier les textes des pages
+
+Les textes vivent dans `content/pages.json` (un bloc par page, plus un bloc `association`
+qui porte le nom, le téléphone, le courriel, le RNA, le SIRET, les adresses et les liens
+des réseaux). `content/formulaires.json` porte les libellés, les aides, les messages
+d’erreur et les mentions RGPD. Ce sont des fichiers texte : les modifier demande de
+relancer le serveur, et une page incomplète le fait **échouer au démarrage** plutôt que
+de s’afficher vide.
+
+## Reste à compléter
+
+Ces valeurs sont volontairement vides dans le dépôt, faute d’avoir été fournies. Tant
+qu’elles le sont, le site affiche un encadré « À compléter » et n’invente rien :
+
+| Où | Quoi |
+|---|---|
+| `content/soutien.json` → `paiement.iban` | IBAN de l’association (il figure sur le bulletin d’adhésion papier) |
+| `content/soutien.json` → `paiement.helloasso_url` | adresse de la page HelloAsso |
+| `content/pages.json` → `association.reseaux[].url` | adresses Facebook, Instagram et album photo |
+| `content/pages.json` → `mentions_legales` | nom, adresse et téléphone de l’hébergeur, à la mise en ligne |
+| `content/animaux.json` | les fiches livrées sont des exemples à remplacer par les vrais animaux, depuis `/interne/animaux` |
+| `public/img/animaux/` | les illustrations SVG livrées remplacent des photos qui n’ont pas été fournies |
+
+## Parcours à rejouer avant une mise en service
+
+1. **Mobile d’abord** : afficher le site à 320 px de large, dérouler le menu, parcourir les
+   sept pages — aucun défilement horizontal, aucune cible de clic sous 44 px.
+2. **Adopter** : un animal « en soins » apparaît au catalogue avec son badge, et son
+   formulaire « projet d’adoption » s’ouvre et s’envoie.
+3. **Famille d’accueil** : envoyer une candidature, la retrouver dans
+   `/interne/soumissions?type=famille_accueil`, la passer en « Traitée » avec une note,
+   l’exporter en CSV.
+4. **Nous soutenir** : envoyer une adhésion jeune **sans** représentant légal → refus en
+   français ; avec représentant légal → acceptée ; vérifier les cases « reçu fiscal » et
+   « photos » dans l’export CSV ; vérifier que l’IBAN et le lien HelloAsso affichent bien
+   un marqueur « à compléter ».
+5. **Conseils** : créer une seconde fiche depuis `/interne/conseils` et la voir apparaître
+   sur `/conseils` sans redémarrage ; sur la fiche alimentation, saisir 32 / 12 / 7 / 3 / 10
+   dans le calculateur → 36 % de glucides annoncés ; désactiver JavaScript → la formule
+   reste lisible.
+6. **Sécurité et vie privée** : aucun cookie sur les pages publiques, aucun script ni style
+   en ligne, jeton CSRF exigé sur les écritures internes, mention RGPD sous chaque formulaire.
+
+Pour la communication sociale (atelier, file de validation, calendrier, journal), voir
+« Communication sociale » plus haut : l’envoi reste simulé.
 
 ## Configuration
 
@@ -249,13 +420,17 @@ Toutes les variables sont décrites dans [`.env.example`](.env.example). Aucune 
 
 Le code lit aussi `CONTENT_DIR` (dossier des contenus éditoriaux, `content/` par défaut), absent de `.env.example`.
 
-## Ce que le client devra fournir
+## Hors périmètre
 
-Ce dépôt est une démonstration. Liste de ce dont une mise en service aurait besoin, **sans
-engagement** sur ce qui serait réalisé ni sur les délais :
-
-- les contenus réels du refuge (textes, fiches animaux, photos, mentions légales, coordonnées) ;
-- un nom de domaine et un hébergement ; un `INTERNAL_SECRET` propre et la `BASE_URL` publique ;
-- les comptes des réseaux sociaux concernés et leurs clés d'API : aujourd'hui seul l'envoi
-  simulé existe, le mode réel n'est pas implémenté ;
-- les modalités réelles de bénévolat et de dons : le site ne traite aucun paiement.
+- **Paiement en ligne traité par le site** : il reste chez HelloAsso. Le site enregistre une
+  demande et affiche les moyens de règlement ; il ne débite rien et ne demande aucune
+  coordonnée bancaire.
+- **Publication réelle sur Facebook ou Instagram** : l'atelier reste en simulation. Le mode
+  réel demanderait des comptes développeur et des clés d'API.
+- **Déploiement et nom de domaine** : l'application tourne en local et reste prête à
+  déployer. Point à arbitrer avant la mise en service : un hébergement gratuit met le
+  serveur en veille et **efface les fichiers de `data/` à chaque redéploiement** s'il n'y a
+  pas de disque persistant — les demandes reçues seraient perdues.
+- **Intégration des photos réelles** : les illustrations SVG livrées sont des exemples. Les
+  photos de l'association se déposent dans `public/img/animaux/`, puis se rattachent aux
+  fiches depuis `/interne/animaux`.

@@ -1,4 +1,6 @@
-/* Espace interne – compléments à main.css (mêmes jetons, mêmes contrastes AA).
+/* Espace interne « Les Petits Oubliés » – compléments à main.css.
+   Mêmes jetons et mêmes contrastes AA : la palette vient de main.css (:root),
+   ce fichier ne redéfinit aucune couleur.
    Espacements : --esp-1..8 ; gouttière et conteneur : --gouttiere / --conteneur (main.css).
    Mobile d'abord ; ajustements à 600 / 900 px. */
 
@@ -94,3 +96,18 @@
   .tableau thead th { background: var(--surface); color: var(--texte); }
   .post .actions { flex-wrap: nowrap; }
 }
+
+/* Bandeau d'information de l'espace interne (publications simulées). */
+.bandeau-interne {
+  background: var(--vert-bande); color: var(--texte);
+  padding: var(--esp-2) var(--gouttiere);
+  font-size: .9375rem; text-align: center;
+}
+.bandeau-interne p { margin: 0; }
+
+/* Aide au format des sections d'une fiche conseil */
+.aide-format { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-3) var(--esp-4); margin: 0 0 var(--esp-4); max-width: 36rem; }
+.aide-format summary { min-height: var(--cible); display: flex; align-items: center; font-weight: 700; cursor: pointer; }
+.aide-format pre { overflow-x: auto; background: var(--surface); padding: var(--esp-3); border-radius: var(--rayon); font-size: .875rem; }
+.aide-format code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+.aide-format p:last-child { margin-bottom: 0; }

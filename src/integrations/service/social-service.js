@@ -132,7 +132,7 @@ export function createSocialService({ dataDir, env = process.env, getAnimals = (
    */
   function deposerManuel({ animal, platform, text, imageUrl, alt, gabarit } = {}) {
     if (!animal || (animal.id == null && animal.slug == null)) throw new SocialError('ANIMAL_INVALIDE', 'Animal sans identifiant.');
-    if (!isAvailable(animal)) throw new SocialError('ANIMAL_ADOPTE', 'Cet animal est adopté : on ne dépose plus de publication à son sujet.');
+    if (!isAvailable(animal)) throw new SocialError('ANIMAL_NON_PUBLIABLE', 'Cet animal n’est pas adoptable (adopté ou en soins) : on ne dépose pas de publication à son sujet.');
     if (typeof text !== 'string' || !text.trim() || text.length > 5000) throw new SocialError('TEXTE_INVALIDE', 'Le texte doit être non vide (5000 caractères max).');
     if (alt != null && (typeof alt !== 'string' || [...alt].length > 300)) throw new SocialError('ALT_INVALIDE', 'Le texte alternatif est limité à 300 caractères.');
     let connector;

@@ -1,30 +1,36 @@
-/* Refuge des Quatre Vents (démo) – feuille de style commune.
+/* Les Petits Oubliés – feuille de style commune.
    Mobile d'abord : bases pour 360 px, puis 600 / 900 / 1200 px (min-width).
+   Palette relevée sur le flyer de l'association (beige, vert, marron).
    Contrastes calculés (WCAG 2.2, ratio) :
-   texte #1F2933 / fond #FBF8F3 = 13,9 ; secondaire #4A5560 / fond = 7,2 ;
-   lien #14525B / fond = 8,3 ; blanc / primaire #1B5E67 = 7,4 ;
-   blanc / bandeau #2D2A5F = 13,1 ; erreur #A61B1B / fond = 7,1 ;
-   bordure de champ #767C83 / fond = 4,0 (composant ≥ 3) ;
-   focus #0B3D91 / fond = 9,5 (≥ 3). */
+   texte #3A2A1E / fond #F6F0E7 = 12,1 ; secondaire #5C4A3A / fond = 7,4 ;
+   lien #6A4A22 / fond = 7,1 ; lien / surface #EDE2D2 = 6,3 ; lien / blanc = 8,0 ;
+   blanc / primaire #5C3D23 = 9,8 ; blanc / primaire-fonce #462D19 = 12,7 ;
+   blanc / vert #3F6B2E = 6,3 ; texte / surface = 10,7 ; texte / vert-bande #DFE8D3 = 10,9 ;
+   texte / carte blanche = 13,7 ; erreur #A32020 / fond = 6,7 et / blanc = 7,5 ;
+   succès #1F5A2A / #E2F0E2 = 7,0 ; alerte #7A3E00 / #FBEAD2 = 7,1 ;
+   bordure de champ #7A6A5A / blanc = 5,2 (composant ≥ 3) ;
+   focus #1B4FA8 / fond = 6,8 (≥ 3) ; bordures primaire 8,6 et vert 5,5 / fond. */
 
 :root {
-  --fond: #FBF8F3;
-  --surface: #F3EEE5;
+  --fond: #F6F0E7;
+  --surface: #EDE2D2;
   --carte: #FFFFFF;
-  --texte: #1F2933;
-  --secondaire: #4A5560;
-  --primaire: #1B5E67;
-  --primaire-fonce: #124A52;
-  --lien: #14525B;
-  --bandeau: #2D2A5F;
-  --bord-champ: #767C83;
-  --bord: #D8D0C2;
-  --erreur: #A61B1B;
-  --succes-fond: #E3F2E6;
-  --succes-texte: #14501F;
-  --alerte-fond: #FDE9D3;
-  --alerte-texte: #7A2E00;
-  --focus: #0B3D91;
+  --texte: #3A2A1E;
+  --secondaire: #5C4A3A;
+  --primaire: #5C3D23;
+  --primaire-fonce: #462D19;
+  --lien: #6A4A22;
+  --vert: #3F6B2E;
+  --vert-fonce: #2F5522;
+  --vert-bande: #DFE8D3;
+  --bord-champ: #7A6A5A;
+  --bord: #D9CBB6;
+  --erreur: #A32020;
+  --succes-fond: #E2F0E2;
+  --succes-texte: #1F5A2A;
+  --alerte-fond: #FBEAD2;
+  --alerte-texte: #7A3E00;
+  --focus: #1B4FA8;
 
   /* Échelle d'espacement (base 4 px) */
   --esp-1: .25rem;
@@ -113,16 +119,6 @@ a:hover { text-decoration-thickness: 2px; }
   font-weight: 700;
 }
 .evitement:focus { top: var(--esp-2); }
-
-/* Bandeau de démonstration (permanent) */
-.bandeau-demo {
-  background: var(--bandeau);
-  color: #FFFFFF;
-  padding: var(--esp-2) var(--gouttiere);
-  font-size: .9375rem;
-  text-align: center;
-}
-.bandeau-demo p { margin: 0; }
 
 /* En-tête et navigation */
 .entete { background: var(--carte); border-bottom: 1px solid var(--bord); }
@@ -237,7 +233,7 @@ a:hover { text-decoration-thickness: 2px; }
 .sections-accueil section { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-4); }
 
 /* Pied de page */
-.pied { background: #EFE8DC; border-top: 1px solid var(--bord); color: var(--texte); }
+.pied { background: var(--surface); border-top: 1px solid var(--bord); color: var(--texte); }
 .pied-interieur { max-width: var(--conteneur); margin: 0 auto; padding: var(--esp-4) var(--gouttiere); }
 .pied ul { list-style: none; margin: 0 0 var(--esp-2); padding: 0; display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-4); }
 .pied a { display: inline-flex; align-items: center; min-height: var(--cible); color: var(--lien); }
@@ -274,3 +270,98 @@ a:hover { text-decoration-thickness: 2px; }
 @media (forced-colors: active) {
   .bouton { border: 2px solid ButtonText; }
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Identité « Les Petits Oubliés » : marque, motif de pattes, menu mobile,
+   badges de statut, pages Conseils et Nous soutenir.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Marque : le logo remplace le texte, mais garde une cible de 44 px. */
+.marque { gap: var(--esp-2); }
+.marque img { display: block; height: 2.5rem; width: auto; max-width: min(100%, 20rem); }
+
+/* Motif de pattes : bandes de section uniquement, jamais derrière du texte long. */
+.motif-pattes {
+  background-image: url("/img/marque/pattes.svg");
+  background-repeat: repeat;
+  background-size: 120px 120px;
+}
+
+/* Menu mobile. Sans JavaScript, le bouton reste caché (attribut hidden posé
+   dans le gabarit) et la liste reste visible : aucune entrée n'est perdue. */
+.bouton-menu {
+  display: inline-flex; align-items: center; gap: var(--esp-2);
+  min-height: var(--cible); padding: 0 var(--esp-3);
+  font: inherit; font-weight: 700; color: var(--lien);
+  background: var(--carte); border: 2px solid var(--lien); border-radius: var(--rayon);
+  cursor: pointer;
+}
+.bouton-menu[hidden] { display: none; }
+.bouton-menu::before { content: ""; width: 1.125rem; height: 2px; box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor; background: currentColor; }
+.entete-barre { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); }
+.nav[data-ouvert="non"] > ul { display: none; }
+.nav > ul { flex-direction: column; align-items: stretch; }
+.nav a { justify-content: flex-start; }
+
+/* Badges de statut : toujours un texte, jamais une couleur seule. */
+.badge {
+  display: inline-flex; align-items: center;
+  border-radius: 999px; padding: var(--esp-1) var(--esp-3);
+  font-size: .9375rem; font-weight: 700;
+}
+.badge-disponible { background: var(--succes-fond); color: var(--succes-texte); }
+.badge-en_soins { background: var(--alerte-fond); color: var(--alerte-texte); }
+.badge-adopte { background: var(--surface); color: var(--secondaire); }
+
+/* Bandes de contenu (missions, famille d'accueil, soutien). */
+.bande { background: var(--surface); border-radius: var(--rayon); padding: var(--esp-5) var(--esp-4); margin: var(--esp-5) 0; }
+.bande-verte { background: var(--vert-bande); }
+.bande h2:first-child, .bande h3:first-child { margin-top: 0; }
+.liste-reseaux { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--esp-3); }
+.liste-reseaux a { display: inline-flex; align-items: center; min-height: var(--cible); }
+
+/* Engagements, besoins, collectes : listes de cartes. */
+.liste-cartes { list-style: none; margin: var(--esp-4) 0; padding: 0; display: grid; gap: var(--esp-4); grid-template-columns: 1fr; }
+.liste-cartes > li { background: var(--carte); border: 1px solid var(--bord); border-left: 4px solid var(--vert); border-radius: var(--rayon); padding: var(--esp-4); }
+.liste-cartes h3 { margin: 0 0 var(--esp-2); font-size: 1.0625rem; }
+.liste-cartes p:last-child { margin-bottom: 0; }
+.liste-puces { margin: 0 0 var(--esp-4); padding-left: var(--esp-5); }
+.liste-puces li { margin-bottom: var(--esp-1); }
+
+/* Encadré « à compléter » : marqueur visible pour l'association. */
+.a-completer { background: var(--alerte-fond); color: var(--alerte-texte); border: 2px dashed var(--alerte-texte); border-radius: var(--rayon); padding: var(--esp-3) var(--esp-4); margin: var(--esp-4) 0; }
+.a-completer p:last-child { margin-bottom: 0; }
+
+/* Fiches conseils */
+.liste-conseils { list-style: none; margin: var(--esp-5) 0; padding: 0; display: grid; gap: var(--esp-4); grid-template-columns: 1fr; }
+.conseil-bloc { border-left: 4px solid var(--vert); background: var(--vert-bande); color: var(--texte); border-radius: var(--rayon); padding: var(--esp-4); margin: var(--esp-4) 0; }
+.conseil-bloc h3, .conseil-bloc p:last-child { margin-bottom: 0; }
+.conseil-bloc h3 { margin-top: 0; margin-bottom: var(--esp-2); }
+.saviez-vous { border: 2px solid var(--primaire); background: var(--carte); border-radius: var(--rayon); padding: var(--esp-4); margin: var(--esp-4) 0; }
+.saviez-vous h3 { margin-top: 0; }
+.saviez-vous p:last-child { margin-bottom: 0; }
+.probleme { margin: var(--esp-6) 0; }
+.calculateur { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-4); margin: var(--esp-5) 0; max-width: 36rem; }
+.calculateur .champ input { max-width: 10rem; }
+.calculateur-resultat { font-weight: 700; font-size: 1.125rem; margin: var(--esp-4) 0 0; }
+.calculateur-formule { color: var(--secondaire); }
+
+@media (min-width: 600px) {
+  .liste-cartes { grid-template-columns: repeat(2, 1fr); }
+  .liste-conseils { grid-template-columns: repeat(2, 1fr); }
+  .nav > ul { flex-direction: row; align-items: center; }
+  .bouton-menu { display: none !important; }
+  .nav[data-ouvert="non"] > ul { display: flex; }
+  .bande { padding: var(--esp-6) var(--esp-5); }
+}
+
+@media (min-width: 900px) {
+  .liste-conseils { grid-template-columns: repeat(3, 1fr); }
+  .entete-barre { flex: 0 0 auto; }
+}
+
+/* Mention RGPD sous chaque formulaire */
+.rgpd { border-top: 1px solid var(--bord); padding-top: var(--esp-3); margin-bottom: var(--esp-4); }
+.rgpd p { margin: 0 0 var(--esp-2); }
+.rgpd p:last-child { margin-bottom: 0; }
+.rgpd a { display: inline-flex; align-items: center; min-height: var(--cible); }

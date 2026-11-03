@@ -108,7 +108,7 @@ test('4. vrais gabarits : pas de [REPLI], formulation du JSON, templatesSource =
     for (const r of PLATEFORMES) assert.ok(g[d][r].length > 0 && !g[d][r].includes('[REPLI]'));
   }
   const fb = res.created.find((p) => p.trigger === 'arrivee' && p.platform === 'facebook');
-  assert.match(fb.text, /Nouvelle arrivée au Refuge des Quatre Vents/);
+  assert.match(fb.text, /Nouvelle arrivée chez Les Petits Oubliés/);
   assert.match(fb.text, /cherche une famille/);
   assert.match(fb.text, /#adoptezpasachetez/);
   assert.ok(fb.text.includes('Milo'));

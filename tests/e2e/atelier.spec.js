@@ -119,16 +119,19 @@ test.describe.serial('atelier de publication', () => {
     // Passage de la fiche en « adopté ».
     await page.goto('/interne/animaux');
     const ligne = page.getByRole('row', { name: new RegExp(FICHE) });
-    await ligne.getByRole('button', { name: /Marquer adopté/ }).click();
+    await ligne.locator('select[name="statut"]').selectOption('adopte');
+    await ligne.getByRole('button', { name: /Enregistrer le statut/ }).click();
     await expect(page.getByRole('status')).toContainText('Statut mis à jour.');
 
     const reponse = await page.goto(`/interne/atelier?animal=${FICHE}&reseau=instagram`);
     expect(reponse?.status()).toBe(422);
-    await expect(page.locator('.resume-erreurs ul')).toContainText('Fiche inconnue ou adoptée.');
+    await expect(page.locator('.resume-erreurs ul')).toContainText('Fiche inconnue, adoptée ou en soins.');
 
-    // Remise à disponible pour ne rien laisser derrière.
+    // Remise à adoptable pour ne rien laisser derrière.
     await page.goto('/interne/animaux');
-    await page.getByRole('row', { name: new RegExp(FICHE) }).getByRole('button', { name: /Marquer disponible/ }).click();
+    const retour = page.getByRole('row', { name: new RegExp(FICHE) });
+    await retour.locator('select[name="statut"]').selectOption('disponible');
+    await retour.getByRole('button', { name: /Enregistrer le statut/ }).click();
     await expect(page.getByRole('status')).toContainText('Statut mis à jour.');
   });
 });

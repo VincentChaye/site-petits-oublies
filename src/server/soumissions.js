@@ -9,13 +9,15 @@ import { FORM_SCHEMAS } from '../security/validation.js';
 import { purgeOldSubmissions, RETENTION_MONTHS } from '../security/purge.js';
 
 /** Types de formulaires, dans l'ordre d'affichage de l'espace interne. */
-export const TYPES = Object.freeze(['interet', 'contact', 'benevolat', 'don_parrainage']);
+export const TYPES = Object.freeze(['interet', 'famille_accueil', 'adhesion', 'benevolat', 'contact', 'don_parrainage']);
 
 const LIBELLES = Object.freeze({
-  interet: 'Demandes d’intérêt',
-  contact: 'Messages de contact',
+  interet: 'Projets d’adoption',
+  famille_accueil: 'Candidatures famille d’accueil',
+  adhesion: 'Adhésions et dons',
   benevolat: 'Propositions de bénévolat',
-  don_parrainage: 'Dons et parrainages',
+  contact: 'Messages de contact',
+  don_parrainage: 'Dons et parrainages (archive)',
 });
 
 /** Statuts de suivi d'une demande (exactement ces trois valeurs). */
@@ -53,9 +55,11 @@ export const libelleType = (type) => LIBELLES[type] ?? type;
 export function colonnesDe(type, formulaires) {
   const schema = FORM_SCHEMAS[type] ?? {};
   const champs = formulaires?.[type]?.champs ?? {};
+  // `label_export` permet de donner un en-tête court aux cases à cocher, dont
+  // le libellé affiché est une phrase entière (consentements explicites).
   const colonnes = Object.keys(schema).map((cle) => ({
     cle,
-    libelle: String(champs[cle]?.label ?? cle).replace(/\s*\(facultatif\)\s*$/i, ''),
+    libelle: String(champs[cle]?.label_export ?? champs[cle]?.label ?? cle).replace(/\s*\(facultatif\)\s*$/i, ''),
   }));
   if (type === 'interet') colonnes.unshift({ cle: 'animal', libelle: 'Animal concerné' });
   return colonnes;

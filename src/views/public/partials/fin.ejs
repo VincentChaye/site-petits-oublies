@@ -1,13 +1,22 @@
   </main>
-  <footer class="pied">
+<%
+  const _a = locals.association || {};
+  const _res = (_a.reseaux || []).filter(function (r) { return r.url; });
+%>  <footer class="pied">
     <div class="pied-interieur">
       <nav aria-label="Informations légales">
         <ul>
+          <li><a href="/nous-soutenir">Nous soutenir</a></li>
+          <li><a href="/contact">Contact</a></li>
           <li><a href="/mentions-legales">Mentions légales</a></li>
           <li><a href="/confidentialite">Politique de confidentialité</a></li>
         </ul>
       </nav>
-      <p>Site de démonstration : aucune adoption, aucun don et aucune structure réelle.</p>
+<% if (_res.length) { %>      <ul class="liste-reseaux">
+<% _res.forEach(function (r) { %>        <li><a href="<%= r.url %>" rel="noopener noreferrer"><%= r.nom %></a></li>
+<% }); %>      </ul>
+<% } %>      <p><%= _a.nom || 'Les Petits Oubliés' %><% if (_a.telephone) { %> — <%= _a.telephone %><% } %><% if (_a.email) { %> — <%= _a.email %><% } %></p>
+      <p>Aucun paiement et aucune adoption ne sont conclus en ligne : chaque demande donne lieu à un échange avec l’équipe.</p>
     </div>
   </footer>
 </body>

@@ -129,7 +129,7 @@ test('préremplissage GET : gabarit rendu, texte et hashtags séparés ; paramè
   const html = await ok.text();
   assert.match(html, /<textarea[^>]*>[^<]*Biscotte, chien/);
   assert.doesNotMatch(html, /\{nom\}|\{url\}/);
-  assert.match(html, /value="#adoption #refuge #adoptezpasachetez"/);
+  assert.match(html, /value="#adoption #protectionanimale #adoptezpasachetez"/);
   assert.match(html, /http:\/\/127\.0\.0\.1\/animaux\/biscotte/);
   for (const q of ['reseau=x', 'gabarit=manuel', 'animal=filou', 'animal=inconnu', 'animal[]=a', 'cadrage=16:9']) {
     assert.equal((await obtenir(`/interne/atelier?${q}`, s.cookie)).status, 422, q);
@@ -179,7 +179,7 @@ test('valeurs non-chaînes, réseau, gabarit, cadrage, fiche inconnue : 422 sans
 });
 
 test('limites Instagram : 2200 points de code (emojis compris), +1 refusé, hashtags comptés', async () => {
-  const a = 'tonnerre';
+  const a = 'sucre';
   assert.equal((await deposer({ animal: a, reseau: 'instagram', texte: 'a'.repeat(2201) })).status, 422);
   // Corps limité à 20 ko : emojis mêlés à des caractères ASCII (1 emoji = 1 point de code).
   assert.equal((await deposer({ animal: a, reseau: 'instagram', texte: `${'😀'.repeat(500)}${'a'.repeat(1701)}` })).status, 422); // 2201
@@ -190,7 +190,7 @@ test('limites Instagram : 2200 points de code (emojis compris), +1 refusé, hash
 });
 
 test('limites Facebook : .length ≤ 5000 (emojis = 2 unités), +1 refusé', async () => {
-  const a = 'praline';
+  const a = 'albertine';
   assert.equal((await deposer({ animal: a, texte: 'a'.repeat(5001) })).status, 422);
   // Corps limité à 20 ko : 500 emojis (= 1000 unités) + ASCII.
   assert.equal((await deposer({ animal: a, texte: `${'😀'.repeat(500)}${'a'.repeat(4001)}` })).status, 422); // 5001
@@ -235,7 +235,12 @@ test('animal adopté refusé par la route et par le service', async () => {
   assert.match(await r.text(), /adoptée/);
   assert.equal(postsDe('filou').length, 0);
   assert.throws(() => service.deposerManuel({ animal: { id: 'filou', slug: 'filou', nom: 'Filou', statut: 'adopte' }, platform: 'facebook', text: 'x' }),
-    (e) => e.name === 'SocialError' && e.code === 'ANIMAL_ADOPTE' && /adopté/.test(e.message));
+    (e) => e.name === 'SocialError' && e.code === 'ANIMAL_NON_PUBLIABLE' && /adopté/.test(e.message));
+});
+
+test('animal en soins refusé par le service : pas de publication pendant les soins', () => {
+  assert.throws(() => service.deposerManuel({ animal: { id: 'praline', slug: 'praline', nom: 'Praline', statut: 'en_soins' }, platform: 'facebook', text: 'x' }),
+    (e) => e.name === 'SocialError' && e.code === 'ANIMAL_NON_PUBLIABLE' && /en soins/.test(e.message));
 });
 
 test('aperçu : aucune écriture, formats Instagram 1:1 / 4:5 et Facebook, coupe « … plus », lien', async () => {
@@ -280,11 +285,11 @@ test('échappement : <script> dans le texte, les hashtags et l’alt', async () 
 
 test('1500 caractères de 3 octets (« … ») : déposés (pas de 413, corps < 20 ko) puis modifiables par edit()', async () => {
   const texte = '…'.repeat(1500);
-  const corps = new URLSearchParams({ _csrf: (await connexion()).csrf, animal: 'tonnerre', reseau: 'facebook', texte }).toString();
+  const corps = new URLSearchParams({ _csrf: (await connexion()).csrf, animal: 'roxy', reseau: 'facebook', texte }).toString();
   assert.ok(corps.length > 12 * 1024 && corps.length < 20 * 1024);
   const r = await brut('/interne/atelier/deposer', corps, { cookie: (await connexion()).cookie });
   assert.equal(r.status, 303);
-  const p = postsDe('tonnerre').find((x) => x.text.length === 1500);
+  const p = postsDe('roxy').find((x) => x.text.length === 1500);
   assert.ok(p);
   assert.equal(service.edit(p.id, { text: 'x'.repeat(5000) }).text.length, 5000);
 });

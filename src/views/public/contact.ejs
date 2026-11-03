@@ -12,11 +12,22 @@
 %><%- include('partials/debut', { actif: 'contact', fil: _fil }) %>
     <h1><%= page.h1 %></h1>
     <p class="intro"><%= page.intro %></p>
-    <ul class="contact-liste">
-      <li>Courriel : <%= page.coordonnees.email %></li>
-      <li>Téléphone : <%= page.coordonnees.telephone %></li>
-      <li>Adresse : <%= page.coordonnees.adresse %></li>
+<%
+  var _a = locals.association || {};
+  var _res = (_a.reseaux || []).filter(function (r) { return r.url; });
+%>    <ul class="contact-liste">
+      <li>Téléphone : <a href="tel:<%= _a.telephone_e164 %>"><%= _a.telephone %></a></li>
+      <li>Courriel : <a href="mailto:<%= _a.email %>"><%= _a.email %></a></li>
+      <li>Adresse administrative (courrier) : <%= _a.adresse_courrier %></li>
+      <li>Siège social : <%= _a.siege %></li>
     </ul>
-    <p class="alerte" role="note"><%= page.note %></p>
+<% if (_res.length) { %>    <h2>Nous suivre</h2>
+    <ul class="liste-reseaux">
+<% _res.forEach(function (r) { %>      <li><a href="<%= r.url %>" rel="noopener noreferrer"><%= r.nom %></a></li>
+<% }); %>    </ul>
+<% } else if (_a.reseaux_a_completer) { %>    <div class="a-completer" role="note" aria-label="Information à compléter">
+      <p><strong>À compléter :</strong> <%= _a.reseaux_a_completer %></p>
+    </div>
+<% } %>    <p class="alerte" role="note"><%= page.note %></p>
 <%- include('partials/formulaire', { id: 'formulaire-contact', def: formulaires.contact, action: '/contact', champs: _champs, etat: locals.etat }) %>
 <%- include('partials/fin') %>

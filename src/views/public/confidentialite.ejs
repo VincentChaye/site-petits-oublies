@@ -4,8 +4,8 @@
 %><%- include('partials/debut', { actif: '', fil: _fil }) %>
     <div class="texte-page">
       <h1><%= page.h1 %></h1>
-      <p class="alerte" role="note"><%= page.avertissement %></p>
-<% page.sections.forEach(function (s) { %>      <section>
+<% if (page.avertissement) { %>      <p class="alerte" role="note"><%= page.avertissement %></p>
+<% } %><% page.sections.forEach(function (s) { %>      <section>
         <h2><%= s.h2 %></h2>
         <p><%= s.texte %></p>
       </section>

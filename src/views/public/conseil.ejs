@@ -1,0 +1,80 @@
+<%
+  /* Variables : conseil (entrée de content/conseils.json), association, baseUrl.
+     Le rendu de chaque section est piloté par son `type` : texte, liste, conseil,
+     saviez_vous, probleme. C'est ce gabarit qui permet d'ajouter une fiche depuis
+     /interne/conseils sans toucher au code. */
+  const _base = baseUrl.replace(/\/$/, '');
+  const _url = '/conseils/' + conseil.slug;
+  const _page = { title: conseil.titre + ' – Fiches conseils | Les Petits Oubliés', meta: conseil.resume, url: _url };
+  const _fil = [{ nom: 'Accueil', url: '/' }, { nom: 'Conseils', url: '/conseils' }, { nom: conseil.titre, url: _url }];
+  const _ld = [{
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: conseil.titre,
+    description: conseil.resume,
+    url: _base + _url,
+    inLanguage: 'fr-FR',
+    author: { '@type': 'NGO', name: (locals.association && association.nom) || 'Les Petits Oubliés' }
+  }];
+  const _scripts = conseil.outil === 'glucides' ? ['/js/conseils.js'] : [];
+%><%- include('partials/debut', { page: _page, actif: 'conseils', fil: _fil, ld: _ld, scripts: _scripts }) %>
+    <article class="texte-page">
+      <h1><%= conseil.titre %></h1>
+<% if (conseil.resume) { %>      <p class="intro"><%= conseil.resume %></p>
+<% } %><% conseil.sections.forEach(function (s) { %><% if (s.type === 'saviez_vous') { %>      <aside class="saviez-vous">
+        <h2><%= s.titre || 'Le saviez-vous ?' %></h2>
+        <p><%= s.texte %></p>
+      </aside>
+<% } else if (s.type === 'conseil') { %>      <div class="conseil-bloc">
+        <h2><%= s.titre || 'Conseil' %></h2>
+        <p><%= s.texte %></p>
+      </div>
+<% } else if (s.type === 'probleme') { %>      <section class="probleme">
+        <h2><%= s.titre %></h2>
+        <p><%= s.texte %></p>
+<% if (s.conseil) { %>        <div class="conseil-bloc">
+          <h3>Conseil de nombreux experts</h3>
+          <p><%= s.conseil %></p>
+        </div>
+<% } %>      </section>
+<% } else if (s.type === 'liste') { %>      <section>
+<% if (s.titre) { %>        <h2><%= s.titre %></h2>
+<% } %>        <ul class="liste-puces">
+<% (s.elements || []).forEach(function (e) { %>          <li><%= e %></li>
+<% }); %>        </ul>
+      </section>
+<% } else { %>      <section>
+<% if (s.titre) { %>        <h2><%= s.titre %></h2>
+<% } %>        <p><%= s.texte %></p>
+      </section>
+<% } %><% }); %><% if (conseil.outil === 'glucides') { %>      <section class="calculateur" id="calculateur-glucides" aria-labelledby="calculateur-titre">
+        <h2 id="calculateur-titre">Calculer le taux de glucides d’une croquette</h2>
+        <p class="calculateur-formule">La formule est simple : <strong>100 − protéines − matières grasses − cendres brutes − cellulose brute − humidité = glucides</strong>. Reprenez les pourcentages inscrits sur le paquet. Quand une valeur manque, comptez 6 à 8 % de cendres, 3 à 5 % de cellulose et 5 à 10 % d’humidité.</p>
+        <div data-calculateur-glucides hidden>
+          <div class="champ">
+            <label for="glu-proteines">Protéines (%)</label>
+            <input type="number" id="glu-proteines" inputmode="decimal" min="0" max="100" step="0.1" value="">
+          </div>
+          <div class="champ">
+            <label for="glu-grasses">Matières grasses (%)</label>
+            <input type="number" id="glu-grasses" inputmode="decimal" min="0" max="100" step="0.1" value="">
+          </div>
+          <div class="champ">
+            <label for="glu-cendres">Cendres brutes / matières minérales (%)</label>
+            <input type="number" id="glu-cendres" inputmode="decimal" min="0" max="100" step="0.1" value="">
+          </div>
+          <div class="champ">
+            <label for="glu-fibres">Cellulose brute / fibres (%)</label>
+            <input type="number" id="glu-fibres" inputmode="decimal" min="0" max="100" step="0.1" value="">
+          </div>
+          <div class="champ">
+            <label for="glu-humidite">Humidité (%)</label>
+            <input type="number" id="glu-humidite" inputmode="decimal" min="0" max="100" step="0.1" value="">
+          </div>
+          <p class="calculateur-resultat" id="glu-resultat" role="status" aria-live="polite">Renseignez les cinq valeurs pour obtenir le taux de glucides.</p>
+        </div>
+      </section>
+<% } %>      <p><a href="/conseils">Retour aux fiches conseils</a></p>
+      <p>Ces repères ne remplacent pas l’avis de votre vétérinaire, seul à connaître votre animal.</p>
+    </article>
+<%- include('partials/fin') %>

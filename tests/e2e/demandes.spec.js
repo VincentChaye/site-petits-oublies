@@ -15,7 +15,7 @@ const FICHE = 'biscotte';
 test.describe.serial('suivi des demandes', () => {
   test('le formulaire d’intérêt public enregistre la demande, rattachée à la fiche', async ({ page }) => {
     await page.goto(`/animaux/${FICHE}`);
-    await page.getByRole('link', { name: 'Cet animal m’intéresse' }).click();
+    await page.getByRole('link', { name: 'Parler de mon projet d’adoption' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText(/Biscotte/);
 
     await page.locator('#formulaire-interet-prenom').fill(PRENOM);
@@ -27,8 +27,8 @@ test.describe.serial('suivi des demandes', () => {
     // Le champ piège doit rester vide : il n'est même pas atteignable au clavier.
     await expect(page.locator('#formulaire-interet-site_web')).toHaveValue('');
 
-    await envoyerFormulairePublic(page, 'Envoyer ma demande');
-    await expect(page.getByRole('status')).toContainText('votre demande a bien été enregistrée');
+    await envoyerFormulairePublic(page, "Envoyer mon projet d'adoption");
+    await expect(page.getByRole('status')).toContainText("votre projet d'adoption a bien été enregistré");
     // Aucun cookie n'est posé par une route publique, même après un POST.
     expect(await page.context().cookies()).toEqual([]);
   });
@@ -90,7 +90,7 @@ test.describe.serial('suivi des demandes', () => {
     const corps = page.locator('main');
     await expect(corps).toContainText('7 derniers jours');
     await expect(corps).toContainText('30 derniers jours');
-    await expect(corps).toContainText('Demandes d’intérêt');
+    await expect(corps).toContainText('Projets d’adoption');
     // Biscotte a reçu la demande du premier test : colonne « Demandes » à 1.
     const ligne = page.getByRole('row', { name: /Biscotte/ });
     await expect(ligne.locator('td[data-label="Demandes"]')).toHaveText('1');

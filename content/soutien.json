@@ -1,0 +1,57 @@
+{
+  "_note": "Moyens de paiement, besoins en matériel et agenda des collectes. Les besoins et les collectes se modifient depuis /interne/soutien ; le bloc « paiement » se modifie ici, dans ce fichier.",
+  "paiement": {
+    "intro": "Le site ne traite aucun paiement. Vous réglez votre adhésion ou votre don par l'un des moyens ci-dessous, après l'échange avec l'équipe.",
+    "iban": "",
+    "iban_titulaire": "Association Les Petits Oubliés",
+    "cheque": "Chèque à l'ordre de « Association Les Petits Oubliés », envoyé à l'adresse administrative : 20 rue des 2 Foirails, 19410 Perpezac-le-Noir.",
+    "especes": "En espèces, lors d'une collecte ou d'une rencontre avec un membre de l'équipe. Un reçu vous est remis.",
+    "helloasso_url": "",
+    "helloasso_libelle": "Adhérer ou donner en ligne via HelloAsso",
+    "a_completer": "IBAN et lien HelloAsso à compléter : renseignez-les dans content/soutien.json (clés paiement.iban et paiement.helloasso_url). Tant qu'ils sont vides, le site affiche ce rappel à la place et n'invente aucune coordonnée bancaire."
+  },
+  "besoins": [
+    {
+      "id": "patees",
+      "titre": "Pâtées et sachets fraîcheur",
+      "detail": "Pour les chats, et pour l'alimentation mixte des convalescents."
+    },
+    {
+      "id": "croquettes",
+      "titre": "Croquettes",
+      "detail": "Chat, chien, chaton et chiot. Sans céréales de préférence."
+    },
+    {
+      "id": "litiere",
+      "titre": "Litière",
+      "detail": "Agglomérante ou végétale, en gros sacs de préférence."
+    },
+    {
+      "id": "chanvre-foin",
+      "titre": "Chanvre, foin et paille",
+      "detail": "Pour les lapins et les rongeurs."
+    },
+    {
+      "id": "graines",
+      "titre": "Graines",
+      "detail": "Pour les oiseaux, les rongeurs et les NAC."
+    },
+    {
+      "id": "jouets",
+      "titre": "Jouets",
+      "detail": "Neufs ou en très bon état, lavables."
+    },
+    {
+      "id": "couchages",
+      "titre": "Couchages et couvertures",
+      "detail": "Paniers, coussins, plaids propres."
+    },
+    {
+      "id": "entretien",
+      "titre": "Produits d'entretien",
+      "detail": "Sacs poubelle, essuie-tout, désinfectant sans danger pour les animaux."
+    }
+  ],
+  "collectes": [],
+  "_version": 1
+}

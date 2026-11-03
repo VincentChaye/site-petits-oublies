@@ -89,7 +89,8 @@ export function createSocialRuntime({ env = process.env, dataDir, logger = conso
       const seuil = Number(getSeuil?.());
       const sous = Number.isFinite(seuil)
         ? animaux
-          .filter((a) => String(a.statut ?? '').toLowerCase() !== 'adopte')
+          // Seuls les animaux adoptables sont relancés : ni adoptés, ni en soins.
+          .filter((a) => String(a.statut ?? '').toLowerCase() === 'disponible')
           .filter((a) => (Number(vues[a.slug]) || 0) < seuil)
           .map((a) => ({ id: a.slug, slug: a.slug, nom: a.nom, espece: a.espece, statut: a.statut, dateArrivee: a.dateArrivee, photos: a.photos }))
         : [];

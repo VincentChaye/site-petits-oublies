@@ -1,22 +1,20 @@
 <%
-  /* Variables : page (pages.accueil), baseUrl, vedettes (animaux disponibles, 0 à 4). */
-  const _ld = [{
-    '@context': 'https://schema.org',
-    '@type': 'AnimalShelter',
-    name: 'Refuge des Quatre Vents (site de démonstration)',
-    url: baseUrl.replace(/\/$/, '') + '/',
-    description: page.meta
-  }];
-%><%- include('partials/debut', { actif: 'accueil', ld: _ld }) %>
-    <div class="heros">
+  /* Variables : page (pages.accueil), baseUrl, association, vedettes (animaux visibles, 0 à 4). */
+%><%- include('partials/debut', { actif: 'accueil' }) %>
+    <div class="heros motif-pattes">
       <h1><%= page.h1 %></h1>
       <p class="intro"><%= page.intro %></p>
-      <p><a class="bouton" href="/animaux">Voir les animaux</a></p>
+      <p class="actions">
+        <a class="bouton" href="/adopter">Adopter un animal</a>
+        <a class="bouton bouton-secondaire" href="/famille-accueil">Devenir famille d’accueil</a>
+        <a class="bouton bouton-secondaire" href="/nous-soutenir">Nous soutenir</a>
+      </p>
     </div>
 <% if (locals.vedettes && vedettes.length) { %>    <section aria-labelledby="titre-vedettes">
       <h2 id="titre-vedettes">Ils attendent une famille</h2>
       <ul class="liste-animaux">
 <% vedettes.forEach(function (a) { %><%- include('partials/carte-animal', { a: a, niveau: 3 }) %><% }); %>      </ul>
+      <p><a href="/adopter">Voir tous les animaux à adopter</a></p>
     </section>
 <% } %>    <div class="sections-accueil">
 <% page.sections.forEach(function (s) { %>      <section>

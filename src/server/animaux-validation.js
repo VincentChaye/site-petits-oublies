@@ -18,7 +18,8 @@ export const CHAMPS_OBLIGATOIRES = Object.freeze([
   'slug', 'nom', 'espece', 'race', 'age', 'tranche', 'taille', 'sexe', 'dateArrivee',
   'statut', 'caractere', 'besoins', 'histoire',
 ]);
-export const STATUTS = Object.freeze({ disponible: 'Disponible', adopte: 'Adopté' });
+/** Statuts d'une fiche. « en_soins » reste visible au catalogue, « adopte » disparaît du site. */
+export const STATUTS = Object.freeze({ disponible: 'Adoptable', en_soins: 'En soins', adopte: 'Adopté' });
 export const SEXES = Object.freeze({ femelle: 'Femelle', 'mâle': 'Mâle' });
 export const RE_SLUG = /^[a-z0-9-]{2,60}$/;
 

@@ -97,7 +97,7 @@ Variables du serveur utilisées par ce service : `DATA_DIR` (défaut `data`, dos
 ## Codes d’erreur
 
 Connecteurs (journal et `lastError`) : `DISABLED`, `MISSING_CREDENTIALS`, `SIMULATED_FAILURE`, `INVALID_CONTENT`, `IMAGE_REQUIRED`, `NOT_IMPLEMENTED` (le mode `reel` n’est pas atteignable via le serveur), `INTERNAL_ERROR`. Succès simulé : `SIMULATED_OK`.
-Service : `PLATEFORME_DESACTIVEE`, `ERREUR_INTERNE` (journal) ; exceptions `SocialError.code` : `INTROUVABLE`, `STATUT_INVALIDE`, `TEXTE_INVALIDE`, `ALT_INVALIDE`, `RESEAU_INVALIDE`, `ANIMAL_ADOPTE`, `DECLENCHEUR_INVALIDE`, `ANIMAL_INVALIDE`, `DATE_INVALIDE`, `CONNECTEURS_ABSENTS`, `CONFIG`.
+Service : `PLATEFORME_DESACTIVEE`, `ERREUR_INTERNE` (journal) ; exceptions `SocialError.code` : `INTROUVABLE`, `STATUT_INVALIDE`, `TEXTE_INVALIDE`, `ALT_INVALIDE`, `RESEAU_INVALIDE`, `ANIMAL_NON_PUBLIABLE`, `DECLENCHEUR_INVALIDE`, `ANIMAL_INVALIDE`, `DATE_INVALIDE`, `CONNECTEURS_ABSENTS`, `CONFIG`.
 
 ## Persistance et journal
 

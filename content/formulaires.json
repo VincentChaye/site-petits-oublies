@@ -1,62 +1,114 @@
 {
-"_note":"Aucun paiement ni adoption en ligne : les formulaires déclenchent une mise en relation humaine.",
+"_note":"Libellés, aides et messages des formulaires publics. La clé « rgpd » est affichée juste avant le bouton d'envoi. Les libellés servent aussi d'en-têtes à l'export CSV de l'espace interne.",
+"_rgpd_commun":"Destinataire : l'association Les Petits Oubliés, seule. Base légale : votre consentement. Conservation : 12 mois, puis suppression automatique. Droits d'accès, de rectification, d'effacement et de retrait du consentement : contactlespetitsoublies@gmail.com. Voir notre politique de confidentialité.",
 "interet":{
-"titre":"Exprimer son intérêt pour {nom}",
-"intro":"Ce message n'engage à rien. Un membre de l'équipe vous recontacte pour échanger et organiser une rencontre.",
+"titre":"Mon projet d'adoption pour {nom}",
+"intro":"Ce message n'engage à rien. Un membre de l'équipe vous recontacte pour échanger sur votre projet et organiser une rencontre. Aucune adoption n'est conclue en ligne.",
 "champs":{
 "prenom":{"label":"Prénom","aide":"Comment devons-nous vous appeler ?","erreur":"Indiquez votre prénom."},
 "email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
 "telephone":{"label":"Téléphone (facultatif)","aide":"Si vous préférez un appel.","erreur":"Ce numéro semble incorrect."},
-"logement":{"label":"Votre logement","aide":"Maison, appartement, jardin… quelques mots suffisent.","erreur":"Décrivez brièvement votre logement."},
+"logement":{"label":"Votre logement","aide":"Maison, appartement, jardin, autres animaux… quelques mots suffisent.","erreur":"Décrivez brièvement votre logement."},
 "message":{"label":"Votre message","aide":"Parlez-nous de votre foyer et de ce qui vous attire chez cet animal.","erreur":"Écrivez quelques lignes pour que nous puissions vous répondre."},
-"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette demande.","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de ce projet d'adoption.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
 },
-"envoyer":"Envoyer ma demande",
-"confirmation":"Merci, votre demande a bien été enregistrée. L'équipe vous recontactera pour la suite. Rien n'est conclu à ce stade.",
+"rgpd":"Finalité : étudier votre projet d'adoption et vous recontacter.",
+"envoyer":"Envoyer mon projet d'adoption",
+"confirmation":"Merci, votre projet d'adoption a bien été enregistré. L'équipe vous recontactera pour en parler. Rien n'est conclu à ce stade.",
 "erreur_generale":"Votre demande n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
 },
 "contact":{
 "titre":"Nous écrire",
-"intro":"Une question sur le refuge, une visite ou un animal ? Écrivez-nous.",
+"intro":"Une question sur une adoption, une famille d'accueil, un chat errant dans votre quartier ? Écrivez-nous.",
 "champs":{
 "nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
 "email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
-"sujet":{"label":"Sujet","aide":"Par exemple : visite, question sur une fiche.","erreur":"Indiquez le sujet de votre message."},
+"sujet":{"label":"Sujet","aide":"Par exemple : adoption, famille d'accueil, chat errant.","erreur":"Indiquez le sujet de votre message."},
 "message":{"label":"Message","aide":"Évitez de saisir des données sensibles.","erreur":"Votre message est vide."},
-"consentement":{"label":"J'accepte que mes données servent à me répondre.","aide":"","erreur":"Cochez la case pour envoyer votre message."}
+"consentement":{"label":"J'accepte que mes données servent à me répondre.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre message."}
 },
+"rgpd":"Finalité : répondre à votre message.",
 "envoyer":"Envoyer le message",
-"confirmation":"Merci, votre message a bien été enregistré. Nous vous répondrons dès que possible.",
+"confirmation":"Merci, votre message a bien été enregistré. Nous sommes bénévoles : la réponse peut prendre quelques jours.",
 "erreur_generale":"Votre message n'a pas pu être envoyé. Vérifiez les champs signalés et réessayez."
 },
+"famille_accueil":{
+"titre":"Devenir famille d'accueil",
+"intro":"Dites-nous qui vous êtes et ce que vous pouvez offrir. L'équipe vous recontacte pour échanger, répondre à vos questions et, si tout convient, vous confier un protégé.",
+"champs":{
+"nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
+"prenom":{"label":"Prénom","aide":"","erreur":"Indiquez votre prénom."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"telephone":{"label":"Téléphone","aide":"Nous appelons avant toute visite.","erreur":"Indiquez un numéro de téléphone valide."},
+"adresse":{"label":"Adresse","aide":"Commune et code postal suffisent à ce stade.","erreur":"Indiquez au moins votre commune."},
+"logement":{"label":"Type de logement","aide":"Appartement ou maison, avec ou sans extérieur.","erreur":"Choisissez un type de logement."},
+"autres_animaux":{"label":"Animaux déjà présents chez vous","aide":"Espèces, nombre, caractère. Écrivez « aucun » si vous n'en avez pas.","erreur":"Indiquez les animaux déjà présents, ou « aucun »."},
+"disponibilite":{"label":"Vos disponibilités","aide":"Depuis quand, pour combien de temps, présence en journée…","erreur":"Indiquez vos disponibilités."},
+"especes":{"label":"Espèces que vous pourriez accueillir","aide":"Chats, chiens, lapins, rongeurs, oiseaux, NAC — plusieurs réponses possibles.","erreur":"Indiquez au moins une espèce."},
+"engagements":{"label":"J'ai lu et j'accepte les cinq engagements de la famille d'accueil.","label_export":"Cinq engagements acceptés","aide":"Ils sont listés juste au-dessus de ce formulaire.","erreur":"Vous devez accepter les cinq engagements pour candidater."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette candidature.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre candidature."}
+},
+"options_logement":[{"valeur":"appartement","libelle":"Appartement"},{"valeur":"appartement_balcon","libelle":"Appartement avec balcon ou terrasse"},{"valeur":"maison","libelle":"Maison sans jardin"},{"valeur":"maison_jardin","libelle":"Maison avec jardin"},{"valeur":"autre","libelle":"Autre"}],
+"rgpd":"Finalité : étudier votre candidature de famille d'accueil, vous recontacter et organiser une visite.",
+"envoyer":"Envoyer ma candidature",
+"confirmation":"Merci pour votre candidature. L'équipe vous recontactera pour en parler et répondre à vos questions.",
+"erreur_generale":"Votre candidature n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
+},
+"adhesion":{
+"titre":"Adhérer ou faire un don",
+"intro":"Aucun paiement n'est effectué sur ce site. Ce formulaire enregistre votre demande ; l'équipe vous recontacte pour le règlement (virement, chèque, espèces ou HelloAsso) et pour le reçu fiscal si vous en souhaitez un.",
+"champs":{
+"nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
+"prenom":{"label":"Prénom","aide":"","erreur":"Indiquez votre prénom."},
+"adresse":{"label":"Adresse","aide":"Nécessaire pour l'adhésion et pour le reçu fiscal.","erreur":"Indiquez votre adresse."},
+"telephone":{"label":"Téléphone","aide":"","erreur":"Indiquez un numéro de téléphone valide."},
+"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
+"formule":{"label":"Votre choix","aide":"Adhésion 20 €, adhésion jeune (0 à 18 ans) 10 €, ou don du montant de votre choix.","erreur":"Choisissez une formule."},
+"montant":{"label":"Montant du don en euros (si don libre)","aide":"Chiffres seulement. À remplir uniquement pour un don libre.","erreur":"Indiquez un montant en euros, par exemple 30."},
+"representant_nom":{"label":"Nom du représentant légal (adhésion jeune)","aide":"Obligatoire pour une adhésion jeune.","erreur":"Indiquez le nom du représentant légal."},
+"representant_prenom":{"label":"Prénom du représentant légal (adhésion jeune)","aide":"Obligatoire pour une adhésion jeune.","erreur":"Indiquez le prénom du représentant légal."},
+"representant_accord":{"label":"En tant que représentant légal, je donne mon accord (« bon pour accord »).","label_export":"Accord du représentant légal","aide":"Obligatoire pour une adhésion jeune.","erreur":"L'accord du représentant légal est obligatoire pour une adhésion jeune."},
+"recu_fiscal":{"label":"Je souhaite recevoir un reçu fiscal.","label_export":"Reçu fiscal demandé","aide":"","erreur":""},
+"photos":{"label":"J'accepte que des photos sur lesquelles j'apparais soient publiées sur les supports de communication de l'association.","label_export":"Publication de photos acceptée","aide":"Indépendant du reste : vous pouvez adhérer sans l'accepter.","erreur":""},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette demande.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
+},
+"options_formule":[{"valeur":"adhesion","libelle":"Adhésion – 20 €"},{"valeur":"adhesion_jeune","libelle":"Adhésion jeune (0 à 18 ans) – 10 €"},{"valeur":"don_libre","libelle":"Don libre"}],
+"rgpd":"Finalité : enregistrer votre adhésion ou votre don, organiser le règlement et établir le reçu fiscal si vous le demandez. L'autorisation de publication de photos est un consentement distinct.",
+"envoyer":"Envoyer ma demande",
+"confirmation":"Merci. Votre demande est enregistrée et l'équipe vous écrira pour le règlement. Aucun paiement n'a été effectué sur ce site.",
+"erreur_generale":"Votre demande n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
+},
 "benevolat":{
-"titre":"Devenir bénévole",
-"intro":"Dites-nous comment vous souhaitez aider. L'équipe vous contacte pour définir ensemble une mission.",
+"titre":"Donner un peu de votre temps",
+"intro":"Transport vers le vétérinaire, tenue d'un stand lors d'une collecte, nourrissage des chats libres, relais de nos annonces : dites-nous ce qui vous tente, l'équipe vous recontacte.",
 "champs":{
 "nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
 "email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
 "disponibilites":{"label":"Vos disponibilités","aide":"Jours et créneaux approximatifs.","erreur":"Indiquez vos disponibilités."},
-"envies":{"label":"Ce que vous aimeriez faire","aide":"Promenades, soins, accueil, événements…","erreur":"Précisez ce que vous aimeriez faire."},
-"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette proposition.","aide":"","erreur":"Cochez la case pour envoyer votre proposition."}
+"envies":{"label":"Ce que vous aimeriez faire","aide":"Collectes, transport, nourrissage, communication, événements…","erreur":"Précisez ce que vous aimeriez faire."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de cette proposition.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre proposition."}
 },
+"rgpd":"Finalité : étudier votre proposition de bénévolat et vous recontacter.",
 "envoyer":"Proposer mon aide",
 "confirmation":"Merci pour votre proposition. L'équipe vous recontactera pour en discuter.",
 "erreur_generale":"Votre proposition n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
 },
 "don_parrainage":{
-"titre":"Faire un don ou parrainer un animal",
-"intro":"Aucun paiement n'est possible sur ce site. Ce formulaire sert à vous mettre en relation avec l'équipe, qui vous présentera les modalités.",
+"_note":"Ce formulaire n'est plus proposé au public. Le type reste reconnu par l'espace interne et l'export CSV, pour les demandes déjà enregistrées.",
+"titre":"Dons et parrainages (archive)",
+"intro":"Formulaire retiré du site public. Conservé pour consulter et exporter les demandes déjà reçues.",
 "champs":{
 "nom":{"label":"Nom","aide":"","erreur":"Indiquez votre nom."},
-"email":{"label":"Adresse e-mail","aide":"Utilisée uniquement pour vous répondre.","erreur":"Indiquez une adresse e-mail valide."},
-"type":{"label":"Type de soutien","aide":"Don matériel ou parrainage d'un animal.","erreur":"Choisissez un type de soutien."},
-"animal":{"label":"Animal à parrainer (facultatif)","aide":"Laissez vide si vous n'avez pas de préférence.","erreur":"Cet animal n'est pas disponible."},
-"message":{"label":"Votre message","aide":"Précisez votre idée de don ou de parrainage.","erreur":"Écrivez quelques mots pour préciser votre souhait."},
-"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de ce soutien.","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
+"email":{"label":"Adresse e-mail","aide":"","erreur":"Indiquez une adresse e-mail valide."},
+"type":{"label":"Type de soutien","aide":"","erreur":"Choisissez un type de soutien."},
+"animal":{"label":"Animal à parrainer (facultatif)","aide":"","erreur":"Cet animal n'est pas disponible."},
+"message":{"label":"Votre message","aide":"","erreur":"Écrivez quelques mots pour préciser votre souhait."},
+"consentement":{"label":"J'accepte d'être recontacté(e) au sujet de ce soutien.","label_export":"Consentement au recontact","aide":"","erreur":"Cochez la case pour envoyer votre demande."}
 },
 "options_type":[{"valeur":"don_materiel","libelle":"Don matériel"},{"valeur":"parrainage","libelle":"Parrainage d'un animal"}],
+"rgpd":"Finalité : traiter les demandes de soutien reçues avant le retrait de ce formulaire.",
 "envoyer":"Envoyer ma demande",
-"confirmation":"Merci pour votre geste. L'équipe vous écrira pour expliquer la suite. Aucun paiement n'a été effectué.",
+"confirmation":"Merci pour votre geste. L'équipe vous écrira pour expliquer la suite.",
 "erreur_generale":"Votre demande n'a pas pu être envoyée. Vérifiez les champs signalés et réessayez."
 }
 }

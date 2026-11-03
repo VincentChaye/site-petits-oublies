@@ -20,7 +20,7 @@ const CONTROLES_SAUF_LF = /(?!\n)[\p{Cc}\p{Zl}\p{Zp}]/gu;
  * @property {boolean} [required] Obligatoire.
  * @property {number} max Longueur maximale.
  * @property {number} [min] Longueur minimale.
- * @property {'text'|'email'|'multiline'|'consent'|'enum'|'slug'} [kind] Type (défaut text).
+ * @property {'text'|'email'|'multiline'|'consent'|'enum'|'slug'|'entier'} [kind] Type (défaut text).
  * @property {string[]} [values] Valeurs permises (kind enum).
  */
 
@@ -46,6 +46,34 @@ export const FORM_SCHEMAS = Object.freeze({
     email: { label: "L'adresse e-mail", required: true, max: EMAIL_MAX, kind: 'email' },
     disponibilites: { label: 'Les disponibilités', required: true, min: 2, max: 500, kind: 'multiline' },
     envies: { label: 'Les envies', required: true, min: 2, max: 1000, kind: 'multiline' },
+    consentement: { label: 'Le consentement', required: true, max: 5, kind: 'consent' },
+  },
+  famille_accueil: {
+    nom: { label: 'Le nom', required: true, min: 2, max: 100 },
+    prenom: { label: 'Le prénom', required: true, min: 2, max: 100 },
+    email: { label: "L'adresse e-mail", required: true, max: EMAIL_MAX, kind: 'email' },
+    telephone: { label: 'Le téléphone', required: true, max: 20 },
+    adresse: { label: "L'adresse", required: true, min: 2, max: 300, kind: 'multiline' },
+    logement: { label: 'Le type de logement', required: true, max: 30, kind: 'enum', values: ['appartement', 'appartement_balcon', 'maison', 'maison_jardin', 'autre'] },
+    autres_animaux: { label: 'Les animaux déjà présents', required: true, min: 2, max: 500, kind: 'multiline' },
+    disponibilite: { label: 'La disponibilité', required: true, min: 2, max: 500, kind: 'multiline' },
+    especes: { label: 'Les espèces souhaitées', required: true, min: 2, max: 300, kind: 'multiline' },
+    engagements: { label: 'Les cinq engagements', required: true, max: 5, kind: 'consent' },
+    consentement: { label: 'Le consentement', required: true, max: 5, kind: 'consent' },
+  },
+  adhesion: {
+    nom: { label: 'Le nom', required: true, min: 2, max: 100 },
+    prenom: { label: 'Le prénom', required: true, min: 2, max: 100 },
+    adresse: { label: "L'adresse", required: true, min: 2, max: 300, kind: 'multiline' },
+    telephone: { label: 'Le téléphone', required: true, max: 20 },
+    email: { label: "L'adresse e-mail", required: true, max: EMAIL_MAX, kind: 'email' },
+    formule: { label: 'La formule', required: true, max: 20, kind: 'enum', values: ['adhesion', 'adhesion_jeune', 'don_libre'] },
+    montant: { label: 'Le montant du don', max: 6, kind: 'entier' },
+    representant_nom: { label: 'Le nom du représentant légal', max: 100 },
+    representant_prenom: { label: 'Le prénom du représentant légal', max: 100 },
+    representant_accord: { label: "L'accord du représentant légal", max: 5, kind: 'consent' },
+    recu_fiscal: { label: 'Le reçu fiscal', max: 5, kind: 'consent' },
+    photos: { label: 'La publication de photos', max: 5, kind: 'consent' },
     consentement: { label: 'Le consentement', required: true, max: 5, kind: 'consent' },
   },
   don_parrainage: {
@@ -84,7 +112,7 @@ export function sanitizeText(value, multiline = false) {
 /**
  * Valide et assainit un formulaire. Les champs inconnus sont ignorés ; le honeypot
  * et les jetons se traitent dans antispam.js.
- * @param {'interet'|'contact'|'benevolat'|'don_parrainage'} form Nom du formulaire.
+ * @param {'interet'|'contact'|'benevolat'|'famille_accueil'|'adhesion'|'don_parrainage'} form Nom du formulaire.
  * @param {Record<string, unknown> | null | undefined} body Corps reçu.
  * @returns {ValidationResult} Résultat.
  * @throws {Error} Si le formulaire est inconnu.
@@ -116,6 +144,7 @@ export function validateForm(form, body) {
     else if (kind === 'email' && !EMAIL_RE.test(v)) errors[name] = "L'adresse e-mail n'est pas valide.";
     else if (kind === 'enum' && !rule.values.includes(v)) errors[name] = `${rule.label} n'est pas valide.`;
     else if (kind === 'slug' && !/^[a-z0-9-]+$/.test(v)) errors[name] = `${rule.label} n'est pas valide.`;
+    else if (kind === 'entier' && !/^\d{1,6}$/.test(v)) errors[name] = `${rule.label} doit être un nombre entier d'euros (chiffres uniquement).`;
     else if (name === 'telephone' && !/^[+\d][\d ().-]{5,}$/.test(v)) errors[name] = `${rule.label} n'est pas valide.`;
   }
   return { valid: Object.keys(errors).length === 0, errors, values };

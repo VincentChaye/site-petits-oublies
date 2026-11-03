@@ -1,5 +1,6 @@
 /**
  * Espace interne (/interne) : connexion par secret partagé, tableau de bord,
+ * fiches animaux, fiches conseils, besoins et collectes, atelier de publication,
  * file de validation des publications simulées, calendrier, journal et
  * soumissions des formulaires. Seul cet espace émet un cookie de session.
  * @module server/routes/interne
@@ -19,6 +20,8 @@ import {
 import { LIBELLES_ESPECE } from '../content.js';
 import { monterAnimaux } from './interne-animaux.js';
 import { monterAtelier } from './interne-atelier.js';
+import { monterConseils } from './interne-conseils.js';
+import { monterSoutien } from './interne-soutien.js';
 
 const LIBELLES_PLATEFORME = Object.freeze({ facebook: 'Facebook', instagram: 'Instagram', x: 'X', linkedin: 'LinkedIn' });
 const PLATEFORMES = Object.freeze(['facebook', 'instagram', 'x', 'linkedin']);
@@ -113,6 +116,12 @@ export function createInterneRouter({ contenu, soumissions, vues, social, secret
 
   // ── Atelier de publication (dépôt manuel) ──────────────────────────────────
   monterAtelier(router, { contenu, social, logger });
+
+  // ── Fiches conseils (liste, création, modification, suppression) ───────────
+  monterConseils(router, { contenu, logger });
+
+  // ── Besoins en matériel et agenda des collectes ────────────────────────────
+  monterSoutien(router, { contenu, logger });
 
   router.post('/deconnexion', (req, res) => {
     sessions.destroy(req.sessionToken);

@@ -1,7 +1,7 @@
 /**
  * Gestion des fiches animaux depuis /interne : liste, création, modification,
- * bascule adopté/disponible. À appeler APRÈS la garde de session et le CSRF
- * (tout POST exige donc un jeton valide).
+ * changement de statut (adoptable, en soins, adopté). À appeler APRÈS la garde
+ * de session et le CSRF (tout POST exige donc un jeton valide).
  * @module server/routes/interne-animaux
  */
 import { validerFiche, CHAMPS_OBLIGATOIRES, STATUTS, SEXES } from '../animaux-validation.js';
@@ -122,7 +122,7 @@ export function monterAnimaux(router, { contenu, logger = console }) {
     } catch (e) { next(e); }
   });
 
-  // ── Bascule adopté / disponible ──
+  // ── Changement de statut (valeur cible explicite) ──
   router.post('/animaux/:slug/statut', async (req, res, next) => {
     try {
       const actuelle = contenu.animal(req.params.slug);
@@ -133,12 +133,18 @@ export function monterAnimaux(router, { contenu, logger = console }) {
         return rendreListe(res, { status: 422, message: { type: 'erreur', texte: 'Version de la fiche manquante ou invalide : rechargez la liste.' } });
       }
       const attendue = Number(brut);
+      // Statut cible explicite, validé en liste blanche : jamais une bascule devinée.
+      const cible = typeof req.body?.statut === 'string' ? req.body.statut.trim() : '';
+      if (!Object.hasOwn(STATUTS, cible)) {
+        const permis = Object.keys(STATUTS).join(', ');
+        return rendreListe(res, { status: 422, message: { type: 'erreur', texte: `Statut inconnu : choisissez ${permis}.` } });
+      }
       try {
         await contenu.modifierAnimaux((liste) => {
           const i = liste.findIndex((a) => a.slug === slug);
           if (i < 0) throw new ErreurFiche(404, 'Fiche introuvable.');
           if (versionDe(liste[i]) !== attendue) throw new ErreurFiche(409, MSG_PERIME);
-          liste[i] = { ...liste[i], statut: liste[i].statut === 'disponible' ? 'adopte' : 'disponible', _version: attendue + 1 };
+          liste[i] = { ...liste[i], statut: cible, _version: attendue + 1 };
           return liste;
         });
       } catch (e) {
@@ -148,7 +154,7 @@ export function monterAnimaux(router, { contenu, logger = console }) {
       }
       res.redirect(303, '/interne/animaux?ok=statut');
     } catch (e) {
-      logger.error?.(`[interne] bascule statut : ${e?.message ?? ''}`);
+      logger.error?.(`[interne] changement de statut : ${e?.message ?? ''}`);
       next(e);
     }
   });

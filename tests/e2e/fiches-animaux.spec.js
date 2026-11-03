@@ -1,6 +1,7 @@
 /**
  * Parcours « fiches animaux » : créer une fiche depuis /interne, la voir apparaître
- * sur /animaux, la modifier, puis la marquer adoptée et la voir disparaître du public.
+ * sur /adopter, la modifier, puis changer son statut (en soins, adopté) et observer
+ * l'effet sur le site public.
  * Couvre aussi le refus d'une saisie invalide et celui d'un slug déjà utilisé.
  */
 import { test, expect } from '@playwright/test';
@@ -31,7 +32,7 @@ async function remplirFiche(page, { nom = NOM, slug = SLUG, creation = true, car
 }
 
 test.describe.serial('fiches animaux depuis l’espace interne', () => {
-  test('création : la fiche apparaît dans la liste interne puis sur /animaux', async ({ page }) => {
+  test('création : la fiche apparaît dans la liste interne puis sur /adopter', async ({ page }) => {
     await connexionInterne(page);
     await page.getByRole('link', { name: 'Fiches animaux' }).click();
     await page.getByRole('link', { name: 'Créer une fiche' }).click();
@@ -44,11 +45,11 @@ test.describe.serial('fiches animaux depuis l’espace interne', () => {
     await expect(page.getByRole('row', { name: new RegExp(SLUG) })).toBeVisible();
 
     // Visible côté public, avec sa fiche détaillée.
-    await page.goto('/animaux');
+    await page.goto('/adopter');
     await expect(page.getByRole('link', { name: new RegExp(NOM) }).first()).toBeVisible();
     await page.goto(`/animaux/${SLUG}`);
     await expect(page.getByRole('heading', { level: 1 })).toContainText(NOM);
-    await expect(page.getByRole('link', { name: 'Cet animal m’intéresse' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Parler de mon projet d’adoption' })).toBeVisible();
   });
 
   test('slug déjà utilisé : refus explicite en français, aucune fiche ajoutée', async ({ page }) => {
@@ -92,24 +93,43 @@ test.describe.serial('fiches animaux depuis l’espace interne', () => {
     await expect(page.locator('main')).toContainText(caractere);
   });
 
-  test('bascule adopté : la fiche quitte /animaux, le formulaire d’intérêt redirige', async ({ page }) => {
-    await connexionInterne(page);
+  /** Choisit le statut cible d'une fiche depuis la liste interne et valide. */
+  async function changerStatut(page, cible) {
     await page.goto('/interne/animaux');
     const ligne = page.getByRole('row', { name: new RegExp(SLUG) });
-    await ligne.getByRole('button', { name: /Marquer adopté/ }).click();
+    await ligne.locator('select[name="statut"]').selectOption(cible);
+    await ligne.getByRole('button', { name: /Enregistrer le statut/ }).click();
     await expect(page.getByRole('status')).toContainText('Statut mis à jour.');
-    await expect(ligne).toContainText('Adopté');
+  }
 
-    await page.goto('/animaux');
+  test('statut « adopté » : la fiche quitte /adopter, le projet d’adoption redirige', async ({ page }) => {
+    await connexionInterne(page);
+    await changerStatut(page, 'adopte');
+    await expect(page.getByRole('row', { name: new RegExp(SLUG) })).toContainText('Adopté');
+
+    await page.goto('/adopter');
     await expect(page.getByRole('link', { name: new RegExp(`^${NOM}`) })).toHaveCount(0);
     await page.goto(`/animaux/${SLUG}/interet`);
     expect(new URL(page.url()).pathname).toBe(`/animaux/${SLUG}`);
+  });
 
-    // Retour à « disponible » : la fiche revient côté public.
-    await page.goto('/interne/animaux');
-    await page.getByRole('row', { name: new RegExp(SLUG) }).getByRole('button', { name: /Marquer disponible/ }).click();
-    await expect(page.getByRole('status')).toContainText('Statut mis à jour.');
-    await page.goto('/animaux');
+  test('statut « en soins » : la fiche reste au catalogue avec son badge, et accepte un projet', async ({ page }) => {
+    await connexionInterne(page);
+    await changerStatut(page, 'en_soins');
+
+    await page.goto('/adopter');
+    const carte = page.locator('.carte', { hasText: NOM }).first();
+    await expect(carte).toBeVisible();
+    await expect(carte.locator('.badge')).toHaveText('En soins');
+
+    await page.goto(`/animaux/${SLUG}`);
+    await expect(page.getByRole('note')).toContainText('en soins');
+    await page.getByRole('link', { name: 'Parler de mon projet d’adoption' }).click();
+    expect(new URL(page.url()).pathname).toBe(`/animaux/${SLUG}/interet`);
+
+    // Retour à « adoptable » : rien ne reste derrière.
+    await changerStatut(page, 'disponible');
+    await page.goto('/adopter');
     await expect(page.getByRole('link', { name: new RegExp(NOM) }).first()).toBeVisible();
   });
 });
