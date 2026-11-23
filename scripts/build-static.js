@@ -5,7 +5,8 @@
  * dans `dist/` (une page = un dossier avec index.html) et copie `public/`.
  * Les formulaires sont remplacés par les coordonnées de l'association
  * (option `statique`) et les filtres du catalogue s'appliquent côté navigateur.
- * L'espace interne n'est pas exporté.
+ * De l'espace interne, seule la page de connexion est exportée : elle
+ * s'affiche mais l'envoi ne déclenche rien (aucun serveur derrière).
  *
  * Variables :
  *   BASE_PATH  préfixe des URL (ex. « /site-petits-oublies » pour un site de projet)
@@ -83,6 +84,12 @@ try {
   const r404 = await fetch(`${origine}/page-inexistante`);
   await fs.writeFile(path.join(sortie, '404.html'), reecrireHtml(await r404.text()));
 
+  // Connexion interne : page affichée, envoi sans effet (data-sans-envoi).
+  const connexion = await new Promise((ok, ko) => app.render('interne/connexion', { erreur: null, statique: true },
+    (e, html) => (e ? ko(e) : ok(html))));
+  await fs.mkdir(path.join(sortie, 'interne', 'connexion'), { recursive: true });
+  await fs.writeFile(path.join(sortie, 'interne', 'connexion', 'index.html'), reecrireHtml(connexion));
+
   // Anciennes adresses : redirection côté client.
   const redirections = { '/refuge': '/nos-missions', '/animaux': '/adopter' };
   for (const [de, vers] of Object.entries(redirections)) {
@@ -102,7 +109,7 @@ try {
 
   const plan = pages.map((p) => `  <url><loc>${site}${reecrireUrl(p)}</loc></url>`).join('\n');
   await fs.writeFile(path.join(sortie, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${plan}\n</urlset>\n`);
-  await fs.writeFile(path.join(sortie, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${site}${base}/sitemap.xml\n`);
+  await fs.writeFile(path.join(sortie, 'robots.txt'), `User-agent: *\nDisallow: ${base}/interne\nSitemap: ${site}${base}/sitemap.xml\n`);
   await fs.writeFile(path.join(sortie, '.nojekyll'), '');
 
   console.log(`Export statique : ${pages.length} pages écrites dans dist/ (préfixe « ${base || '/'} »).`);

@@ -1,13 +1,14 @@
 <%
   /* Route : GET /interne/connexion (affichage), POST /interne/connexion (champ « secret »).
-     Variables : erreur (string|null), csrfToken (facultatif). */
+     Variables : erreur (string|null), csrfToken (facultatif),
+     statique (export GitHub Pages : le formulaire ne déclenche rien). */
 %><%- include('partials/debut', { titre: 'Connexion', sansMenu: true }) %>
     <h1>Connexion à l’espace interne</h1>
     <p class="intro">Saisissez le secret partagé de l’équipe. Un cookie de session est déposé uniquement sur l’espace interne.</p>
 <% if (locals.erreur) { %>    <div class="resume-erreurs" role="alert" tabindex="-1" data-focus-initial>
       <p><%= erreur %></p>
     </div>
-<% } %>    <form class="formulaire" method="post" action="/interne/connexion">
+<% } %>    <form class="formulaire" method="post" action="/interne/connexion"<%= locals.statique ? ' data-sans-envoi' : '' %>>
 <% if (locals.csrfToken) { %>      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 <% } %>      <div class="champ<%= locals.erreur ? ' champ-erreur' : '' %>">
         <label for="secret">Secret</label>

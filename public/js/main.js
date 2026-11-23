@@ -175,4 +175,9 @@
     });
     appliquer();
   }
+
+  /* Export statique : formulaire affiché mais sans serveur pour le traiter. */
+  Array.prototype.forEach.call(document.querySelectorAll('form[data-sans-envoi]'), function (f) {
+    f.addEventListener('submit', function (e) { e.preventDefault(); });
+  });
 }());
