@@ -48,7 +48,8 @@ const pages = ['/', '/adopter', '/nos-missions', '/famille-accueil', '/nous-sout
   ...contenu.visibles.filter((a) => ['disponible', 'en_soins'].includes(a.statut))
     .map((a) => `/animaux/${a.slug}/interet`),
 ];
-const routes = new Set(pages);
+// Connexion interne : exportée à part, mais ses liens prennent aussi le « / » final.
+const routes = new Set([...pages, '/interne/connexion']);
 
 /** Préfixe une URL absolue du site ; ajoute « / » final aux pages (pas de redirection). */
 function reecrireUrl(url) {

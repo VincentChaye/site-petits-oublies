@@ -10,7 +10,8 @@
           <li><a href="/contact">Contact</a></li>
           <li><a href="/mentions-legales">Mentions légales</a></li>
           <li><a href="/confidentialite">Politique de confidentialité</a></li>
-        </ul>
+<% if (locals.statique) { /* Export GitHub Pages seulement : la connexion y est inerte. Le serveur Node ne lie jamais /interne. */ %>          <li><a href="/interne/connexion" rel="nofollow">Espace interne</a></li>
+<% } %>        </ul>
       </nav>
 <% if (_res.length) { %>      <ul class="liste-reseaux">
 <% _res.forEach(function (r) { %>        <li><a href="<%= r.url %>" rel="noopener noreferrer"><%= r.nom %></a></li>
