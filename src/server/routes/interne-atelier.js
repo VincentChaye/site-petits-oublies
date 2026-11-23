@@ -91,7 +91,10 @@ export function monterAtelier(router, { contenu, social, logger = console }) {
       valeurs: { animal: '', reseau: 'instagram', gabarit: '', cadrage: '1:1', texte: '', hashtags: '', alt: '', ...valeurs },
       erreurs,
       apercu,
-      message: message ?? (erreurs.length ? { type: 'erreur', texte: 'Saisie à corriger : voir la liste ci-dessous.' } : null),
+      // Pas de bandeau générique en plus de la liste d'erreurs : deux
+      // `role="alert"` sur la même page annonçaient deux fois le même échec,
+      // et se disputaient la prise de focus. La liste porte son propre titre.
+      message,
       animaux: contenu.disponibles.map((a) => ({ slug: a.slug, nom: a.nom })),
       reseaux: RESEAUX_ATELIER.map((cle) => ({ cle, libelle: LIBELLES_RESEAU[cle], active: !!etats.find((e) => e.platform === cle)?.enabled })),
       gabarits: TRIGGERS,

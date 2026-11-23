@@ -16,7 +16,15 @@
   const _hS = 'h' + (_n + 1);
 %><section class="formulaire" id="<%= id %>" aria-labelledby="<%= id %>-titre">
   <<%= _hT %> id="<%= id %>-titre"><%= locals.titre || def.titre %></<%= _hT %>>
-<% if (_etat.envoye) { %>  <div class="confirmation" role="status" tabindex="-1" data-focus-initial>
+<% if (locals.statique) { const _as = locals.association || {}; %>  <p><%= def.intro %></p>
+  <div class="alerte" role="note">
+    <p>Le formulaire en ligne n'est pas encore disponible. Pour cette demande, contactez directement l'association :</p>
+    <ul>
+<% if (_as.email) { %>      <li>Courriel : <a href="mailto:<%= _as.email %>"><%= _as.email %></a></li>
+<% } %><% if (_as.telephone) { %>      <li>Téléphone : <a href="tel:<%= _as.telephone_e164 || _as.telephone %>"><%= _as.telephone %></a></li>
+<% } %>    </ul>
+  </div>
+<% } else if (_etat.envoye) { %>  <div class="confirmation" role="status" tabindex="-1" data-focus-initial>
     <p><%= def.confirmation %></p>
   </div>
 <% } else { %>  <p><%= def.intro %></p>

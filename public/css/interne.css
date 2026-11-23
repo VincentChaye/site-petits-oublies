@@ -5,16 +5,34 @@
    Mobile d'abord ; ajustements à 600 / 900 px. */
 
 .form-deconnexion { margin: 0; }
-.interne .nav ul { align-items: center; }
 .interne .nav .bouton { padding: 0 var(--esp-4); }
 
-/* Champs complémentaires (nombre, date) alignés sur ceux de main.css */
-.champ input[type="number"], .champ input[type="date"] {
-  display: block; width: 100%; min-height: var(--cible);
-  padding: var(--esp-2) var(--esp-3);
-  font: inherit; color: var(--texte); background: #FFFFFF;
-  border: 2px solid var(--bord-champ); border-radius: var(--rayon);
+/* En-tête de l'espace interne.
+   La marque porte un texte (« Espace interne ») à côté du logo : sans
+   `overflow-wrap: normal`, la règle globale `anywhere` le coupait lettre par
+   lettre, en colonne, dès 360 px. Le logo, lui, doit pouvoir rétrécir. */
+.interne .entete-interieur { flex-direction: column; align-items: stretch; }
+.interne .marque { min-width: 0; overflow-wrap: normal; word-break: normal; }
+.interne .marque img { flex: 0 1 auto; min-width: 0; max-width: 11rem; }
+@media (max-width: 479px) { .interne .marque img { max-width: 7rem; } }
+
+/* Le menu interne compte dix entrées : empilé il occupait 476 px avant le
+   contenu sur mobile. Il reste donc replié (bouton « Menu », palier 899 px
+   porté par data-menu) et ne passe en rangée qu'à partir de 900 px. */
+.interne .nav > ul { flex-direction: column; align-items: stretch; }
+.interne .nav a, .interne .form-deconnexion .bouton { width: 100%; }
+@media (min-width: 900px) {
+  /* Dix entrées plus la déconnexion ne tiennent pas sur la ligne de la marque :
+     le menu occupe sa propre ligne, pleine largeur, et la déconnexion est
+     repoussée à droite plutôt que de terminer la dernière rangée au hasard. */
+  .interne .nav > ul { flex-direction: row; align-items: center; flex-wrap: wrap; gap: var(--esp-1) var(--esp-2); }
+  .interne .nav a, .interne .form-deconnexion .bouton { width: auto; }
+  .interne .nav > ul > li:last-child { margin-left: auto; }
+  .interne .entete-interieur { padding-top: var(--esp-1); }
 }
+
+/* Les champs nombre et date sont stylés par main.css (partagés avec le
+   calculateur des fiches conseils). Ici, seul l'état lecture seule. */
 .champ input[readonly] { background: var(--surface); }
 .champ-erreur input, .champ-erreur select, .champ-erreur textarea { border-color: var(--erreur); }
 .formulaire .actions { align-items: center; margin-bottom: 0; }
@@ -30,15 +48,22 @@
 }
 .tableau tr { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-2) var(--esp-4); margin: 0 0 var(--esp-4); }
 .tableau th, .tableau td {
-  display: grid; grid-template-columns: minmax(0, 9rem) minmax(0, 1fr); gap: var(--esp-3);
+  display: block;
   text-align: left; padding: var(--esp-2) 0; border-bottom: 1px solid var(--bord); vertical-align: top;
 }
 .tableau tr > :last-child { border-bottom: 0; }
-.tableau th::before, .tableau td::before { content: attr(data-label); font-weight: 700; color: var(--secondaire); }
+.tableau th::before, .tableau td::before {
+  content: attr(data-label); display: block;
+  font-weight: 700; color: var(--secondaire); font-size: .875rem;
+}
+/* Une cellule sans `data-label` ne doit pas créer de ligne vide. */
+.tableau th:not([data-label])::before, .tableau td:not([data-label])::before { content: none; }
 .tableau tbody th { font-weight: 600; }
 .tableau a { display: inline-flex; align-items: center; min-height: var(--cible); }
-.tableau .cellule-actions { align-items: start; }
 .tableau .cellule-actions form { margin-top: var(--esp-2); }
+.tableau .cellule-actions .champ { margin-bottom: var(--esp-3); }
+/* Un champ de suivi n'a pas besoin de toute la largeur d'un grand écran. */
+.tableau td .champ select, .tableau td .champ input, .tableau td .champ textarea { max-width: 24rem; }
 .tableau td form { max-width: 100%; }
 .tableau textarea, .tableau select { max-width: 100%; }
 
@@ -102,8 +127,26 @@
   background: var(--vert-bande); color: var(--texte);
   padding: var(--esp-2) var(--gouttiere);
   font-size: .9375rem; text-align: center;
+  border-bottom: 1px solid var(--bord);
 }
-.bandeau-interne p { margin: 0; }
+.bandeau-interne p { margin: 0 auto; max-width: var(--conteneur); }
+
+/* Aperçu d'une publication : le cadrage est justement ce que l'écran doit
+   montrer, l'image est donc recadrée au format du réseau (et non étirée). */
+.apercu {
+  background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon);
+  padding: var(--esp-4); margin: var(--esp-4) 0; max-width: 28rem;
+}
+.apercu-image {
+  display: block; width: 100%; height: auto;
+  object-fit: cover; background: var(--surface);
+  border-radius: 4px; margin-bottom: var(--esp-3);
+}
+.apercu-instagram-1-1 .apercu-image { aspect-ratio: 1 / 1; }
+.apercu-instagram-4-5 .apercu-image { aspect-ratio: 4 / 5; }
+.apercu-facebook .apercu-image { aspect-ratio: 1.91 / 1; }
+.apercu .texte-post { margin-bottom: var(--esp-3); }
+.apercu p:last-child { margin-bottom: 0; }
 
 /* Aide au format des sections d'une fiche conseil */
 .aide-format { background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); padding: var(--esp-3) var(--esp-4); margin: 0 0 var(--esp-4); max-width: 36rem; }
@@ -111,3 +154,7 @@
 .aide-format pre { overflow-x: auto; background: var(--surface); padding: var(--esp-3); border-radius: var(--rayon); font-size: .875rem; }
 .aide-format code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .aide-format p:last-child { margin-bottom: 0; }
+
+/* Listes de liens isolés (fiches sans demande, relances proposées) :
+   ce ne sont pas des liens « en ligne dans une phrase ». */
+.interne .liste-liens a { min-height: var(--cible); }

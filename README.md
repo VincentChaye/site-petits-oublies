@@ -143,8 +143,21 @@ permet d'ajouter « sociabilisation », « accueil d'un lapin », etc. sans touc
 | `conseil` | encadré vert | `titre?`, `texte` |
 | `saviez_vous` | encadré bordé | `titre?`, `texte` |
 | `probleme` | titre + texte, suivis d'un encadré « Conseil de nombreux experts » | `titre` (obligatoire), `texte`, `conseil?` |
+| `chiffres` | 1 à 4 chiffres clés encadrés | `titre?`, `elements[{ libelle, valeur }]` (valeur **texte**), `note?` |
+| `barres` | 1 à 12 barres horizontales, repère facultatif en pointillés | `titre?`, `elements[{ libelle, valeur }]` (valeur **nombre**), `unite?`, `max?`, `repere?{ valeur, libelle? }`, `note?` |
+| `anneau` | 2 à 6 parts, dessinées au prorata de leur total, avec légende | `titre?`, `elements[{ libelle, valeur }]` (valeur **nombre**), `unite?`, `note?` |
 
-Un `type` inconnu fait **échouer le démarrage** plutôt que d'afficher une page vide.
+Un `type` inconnu fait **échouer le démarrage** plutôt que d'afficher une page vide ; il
+en va de même pour un visuel sans `elements` exploitables.
+
+Les trois visuels sont **calculés et rendus côté serveur**, en SVG : largeurs et arcs
+passent par des attributs de géométrie, jamais par un attribut `style` (la CSP interdit
+`style-src 'unsafe-inline'`), et les couleurs viennent des variables `--serie-1..4` de
+`public/css/main.css`. Conséquences : ils s'affichent **sans JavaScript**, la valeur de
+chaque barre ou part est écrite en toutes lettres à côté de sa marque — donc la couleur
+ne porte jamais seule l'information et aucune infobulle n'est nécessaire — et les quatre
+couleurs de série ont été vérifiées pour rester distinguables en protanopie et en
+deutéranopie (écart ΔE ≥ 8), avec un repli en `forced-colors`.
 `outil` vaut `""` (aucun) ou `"glucides"` : dans ce dernier cas, et seulement dans ce
 cas, la page charge `public/js/conseils.js` et affiche le **calculateur du taux de
 glucides** (`100 − protéines − matières grasses − cendres − fibres − humidité`). Le
@@ -197,17 +210,44 @@ par espaces ou virgules, doublons retirés. Le connecteur Facebook déclare une 
 content/        contenu éditorial, source de vérité (JSON) :
                 pages.json (textes des pages + bloc « association »), formulaires.json,
                 animaux.json, conseils.json, soutien.json, posts-templates.json
-public/         CSS, JS d'amélioration progressive (menu mobile, validation, calculateur),
+public/         CSS, JS d'amélioration progressive (menu repliable, validation, calculateur),
                 images (img/marque/ : logo, motif de pattes, flyer), robots.txt
 src/security/   configuration, en-têtes, sessions, CSRF, provenance, validation, anti-spam, CSV, purge
 src/server/     application Express, routes, contenu, compteur de vues, soumissions, stockage
 src/integrations/  service de communication sociale et connecteurs (simulation)
 src/views/      gabarits EJS (public/ et interne/)
-documents-association/  documents fournis par l'association (affiches, flyer, bulletin
+documents_association/  documents fournis par l'association (affiches, flyer, bulletin
                 d'adhésion, fiche conseils) et ce qui en a été repris — hors de public/
 tests/          tests d'intégration des routes (node:test) et tests/e2e/ (Playwright + axe-core)
 data/           données générées à l'exécution (non suivi par git)
 ```
+
+### Feuilles de style et scripts
+
+`main.css` porte la palette, l'échelle d'espacement (`--esp-1..8`), la gouttière, le
+conteneur et **tous les composants partagés** : boutons, champs de formulaire, résumés
+d'erreurs, cartes, menu repliable. `interne.css` ne redéfinit aucune couleur et n'ajoute
+que ce qui est propre à l'espace interne (tableaux, file de validation, aperçu des
+publications). Un composant utilisé des deux côtés appartient à `main.css` : les champs
+`number` et `date` y ont été remontés, car le calculateur public des fiches conseils en a
+besoin autant que les écrans internes.
+
+`main.js` est chargé par les deux espaces. Il gère le menu repliable et la validation des
+formulaires publics ; `interne.js` ne garde que les confirmations avant une action
+destructrice. Le palier de repli du menu est porté par l'attribut `data-menu` de la
+balise `<nav>` : **599 px** sur le site public (sept entrées), **899 px** dans l'espace
+interne (dix entrées plus la déconnexion). Sans JavaScript, le bouton garde son attribut
+`hidden` et la liste reste dépliée : aucune entrée n'est perdue.
+
+Deux conventions valent pour les deux espaces :
+
+- **Cibles de 44 px** — un lien isolé dans une liste ou seul dans un paragraphe prend la
+  classe `lien-bloc`, ou appartient à une liste `liste-liens` / `contact-liste`. Un lien en
+  ligne dans une phrase garde la taille du texte (exception de WCAG 2.5.8).
+- **Tableaux de l'espace interne** — sous 900 px, chaque ligne devient une carte : l'en-tête
+  de colonne est masqué et l'attribut `data-label` de la cellule s'affiche **au-dessus** de
+  la valeur. Toute cellule doit donc porter un `data-label`, sans quoi la carte perd son
+  intitulé sur mobile.
 
 ## Sécurité et vie privée
 
@@ -280,7 +320,7 @@ npm run test:e2e                 # playwright test (tests/e2e/)
 - `npm test` : 220 tests unitaires et d'intégration (serveur monté en mémoire, aucun navigateur),
   dont `tests/server/conseils-interne.test.js` et `tests/server/soutien-interne.test.js` pour les
   deux nouveaux écrans (CSRF, `_version` et 409, validation en liste blanche).
-- `npm run test:e2e` : 100 tests de bout en bout dans un vrai Chromium, répartis en huit
+- `npm run test:e2e` : 123 tests de bout en bout dans un vrai Chromium, répartis en neuf
   fichiers de `tests/e2e/` :
 
   | Fichier | Ce qu'il couvre |
@@ -289,10 +329,11 @@ npm run test:e2e                 # playwright test (tests/e2e/)
   | `fiches-animaux.spec.js` | créer une fiche depuis `/interne`, la voir sur `/adopter`, slug en doublon et saisie invalide refusés en français, modification visible côté public, les trois statuts (« en soins » reste au catalogue et accepte un projet d'adoption, « adopté » en sort) |
   | `demandes.spec.js` | projet d'adoption public → `/interne/soumissions`, passage de « nouvelle » à « traitée » avec note, filtre par statut, export CSV (colonnes `Statut`, `Note`, `Modifiée le`, sans injection de formule), comptage sur le tableau de bord |
   | `soutien.spec.js` | adhésion jeune refusée sans représentant légal puis acceptée avec, cases de consentement distinctes et jamais pré-cochées, mention RGPD, marqueur « à compléter » au lieu d'un IBAN inventé, demande retrouvée dans `/interne/soumissions` et dans l'export CSV ; besoins et collectes ajoutés depuis `/interne/soutien`, collecte passée masquée du site |
-  | `conseils.spec.js` | index → fiche, fil d'Ariane, rendu des types de section, JSON-LD `Article`, **calculateur de glucides** (saisie, résultat, annonce `aria-live`, bornes, formule lisible sans JavaScript) |
+  | `conseils.spec.js` | index → fiche, fil d'Ariane, rendu des types de section, **visuels** (chiffres clés, barres, anneaux) y compris sans JavaScript, JSON-LD `Article`, **calculateur de glucides** (saisie, résultat, annonce `aria-live`, bornes, formule lisible sans JavaScript) |
   | `atelier.spec.js` | aperçu Instagram (carré 1080×1080, coupe à 125 caractères, lien non cliquable) et Facebook (1200×628, lien cliquable), limite de hashtags, dépôt dans la file puis approbation, refus d'une fiche adoptée |
   | `securite.spec.js` | accès refusé sans session, secret erroné, déconnexion, CSP sans `unsafe-inline`, `no-store` sur `/interne`, aucun style/script en ligne, jeton CSRF exigé, écriture `cross-site` refusée, délai anti-robot |
   | `accessibilite.spec.js` | **axe-core** sur 12 pages publiques et 13 pages internes (WCAG 2.0/2.1 A et AA) : zéro violation `critical` ou `serious` ; menu mobile déplié et calculateur rempli également audités ; lien d'évitement, focus visible, formulaires atteignables au clavier, champ piège hors tabulation |
+  | `interface.spec.js` | **mesures faites dans le navigateur**, pas dans le code source : taille des cibles (RGAA 13.1) des liens isolés, champs `number` du calculateur réellement habillés, menu interne replié / `Échap` / sans JavaScript, bandeau dans un point de repère, cellules de tableau sur mobile (étiquette au-dessus, champs à la largeur utile), aperçu de l'atelier recadré au format du réseau, résumé d'erreurs unique et focalisé |
 
 **Isolation** : `tests/e2e/serveur-de-test.js` recopie `content/` et vide `data/` dans `.tmp-e2e/`
 avant de démarrer le serveur (`CONTENT_DIR` / `DATA_DIR`), sur le port 3100 et avec un secret de
@@ -303,6 +344,24 @@ fichiers JSON. `.tmp-e2e/`, `playwright-report/` et `test-results/` sont ignoré
 **Rapport d'accessibilité** : produit par `accessibilite.spec.js`. En cas de violation, le message
 d'échec liste `impact · règle (n élément(s)) : aide`. Le rapport HTML complet s'obtient avec
 `CI=1 npm run test:e2e` (sortie dans `playwright-report/`).
+
+### Ce que couvre l'accessibilité, et ce qu'elle ne couvre pas
+
+`accessibilite.spec.js` vérifie l'absence de violation **axe-core** ; `interface.spec.js`
+complète par ce qu'un automate ne voit pas dans le balisage : dimensions calculées, cadrage
+des images, repli du menu. Les deux s'exécutent à **320, 360, 768 et 1280 px**.
+
+Quatre liens restent sous 24 px de haut : « file de validation » (atelier, calendrier),
+« Conseils » et « Nous soutenir » (écrans internes). Ils sont **en ligne dans une phrase** et
+relèvent donc de l'exception explicite de WCAG 2.5.8 / RGAA 13.1 : les agrandir couperait le
+texte courant. Les liens isolés dans une liste ou seuls dans un paragraphe, eux, portent la
+classe `lien-bloc` ou appartiennent à une liste `liste-liens` / `contact-liste`, qui leur
+donnent une cible de 44 px.
+
+Restent hors de portée d'un test automatique, et à vérifier à la main avant une mise en
+ligne : la pertinence réelle des textes de remplacement des photos d'animaux (saisis par
+l'équipe depuis `/interne/animaux`), la qualité de la lecture par un lecteur d'écran réel
+(NVDA, VoiceOver) et la clarté du vocabulaire employé dans les fiches.
 
 ## Mode d’emploi pour les bénévoles
 
@@ -332,7 +391,10 @@ modification est en ligne dès l’enregistrement.
 3. **Sections** : une par bloc, les blocs séparés par une ligne contenant seulement `---`.
    La première ligne d’un bloc donne le type, puis le titre après deux points. Le dépliant
    « Comment écrire les sections » du formulaire montre un exemple complet. Types :
-   `texte`, `liste`, `conseil`, `saviez_vous`, `probleme` (voir « Fiches conseils »).
+   `texte`, `liste`, `conseil`, `saviez_vous`, `probleme`, et les trois visuels
+   `chiffres`, `barres`, `anneau` (voir « Fiches conseils »). Dans un visuel, chaque
+   donnée s’écrit `- libellé | valeur`, et les lignes `unite :`, `max :`, `repere :`,
+   `note :` règlent l’échelle et les légendes.
 4. **Outil interactif** : laisser « Aucun », sauf pour une fiche d’alimentation féline où
    « Calculateur du taux de glucides » ajoute l’outil de calcul.
 5. Enregistrer : la fiche est aussitôt en ligne sur `/conseils`, et dans le `sitemap.xml`.
@@ -383,7 +445,9 @@ qu’elles le sont, le site affiche un encadré « À compléter » et n’inven
 ## Parcours à rejouer avant une mise en service
 
 1. **Mobile d’abord** : afficher le site à 320 px de large, dérouler le menu, parcourir les
-   sept pages — aucun défilement horizontal, aucune cible de clic sous 44 px.
+   sept pages — aucun défilement horizontal, aucune cible de clic sous 44 px. Faire de même
+   sur `/interne` : le menu des dix entrées doit rester replié derrière le bouton « Menu »
+   jusqu’à 900 px, et les tableaux s’afficher en cartes, intitulé au-dessus de la valeur.
 2. **Adopter** : un animal « en soins » apparaît au catalogue avec son badge, et son
    formulaire « projet d’adoption » s’ouvre et s’envoie.
 3. **Famille d’accueil** : envoyer une candidature, la retrouver dans

@@ -23,7 +23,7 @@
     <h1><%= page.h1 %></h1>
     <p class="intro"><%= page.intro %></p>
 
-    <form class="filtres" method="get" action="/adopter" role="search" aria-label="Filtrer les animaux">
+    <form class="filtres" method="get" action="/adopter"<%= locals.statique ? ' data-filtre-local' : '' %> role="search" aria-label="Filtrer les animaux">
       <div class="filtres-grille">
 <% _groupes.forEach(function (g) { %>        <div class="champ">
           <label for="filtre-<%= g.nom %>"><%= g.libelle %></label>
@@ -39,7 +39,7 @@
 <% } %>      </div>
     </form>
 
-    <p class="etat-resultats" role="status"><%= animaux.length %> <%= animaux.length > 1 ? 'animaux trouvés' : 'animal trouvé' %></p>
+    <p class="etat-resultats" role="status" data-resultats><%= animaux.length %> <%= animaux.length > 1 ? 'animaux trouvés' : 'animal trouvé' %></p>
 <% if (animaux.length === 0) { %>    <div class="etat-vide">
       <p><%= page.vide %></p>
       <p><a class="bouton" href="/adopter">Voir tous les animaux</a></p>

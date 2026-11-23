@@ -6,10 +6,6 @@
 
   var EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  function champDe(form, nom) {
-    return form.elements.namedItem(nom);
-  }
-
   function messageErreur(el) {
     return el.getAttribute('data-erreur') || 'Ce champ est à corriger.';
   }
@@ -86,19 +82,32 @@
   }
 
 
-  /* Menu replié sous 600 px. Le bouton n'est révélé que si le script tourne ;
-     l'attribut data-ouvert n'existe pas sans lui, donc la liste reste visible. */
-  function initMenu() {
-    var nav = document.querySelector('nav.nav[data-menu]');
-    var bouton = document.querySelector('.bouton-menu');
-    if (!nav || !bouton) { return; }
-    var etroit = window.matchMedia('(max-width: 599px)');
+  /* Menu replié sous le palier porté par `data-menu` (599 px sur le site public,
+     899 px dans l'espace interne, qui compte dix entrées). Le bouton n'est révélé
+     que si le script tourne : l'attribut data-ouvert n'existe pas sans lui, donc
+     la liste reste visible et aucune entrée n'est perdue.
+     Replier le menu rend `aria-expanded` cohérent avec ce qui est réellement
+     affiché, et `Échap` referme sans quitter le clavier. */
+  function initMenu(nav) {
+    /* Le bouton est celui qui pilote cette liste (aria-controls pointe sur son id). */
+    var liste = nav.querySelector('ul');
+    var bouton = (liste && liste.id
+      ? document.querySelector('.bouton-menu[aria-controls="' + liste.id + '"]')
+      : null) || document.querySelector('.bouton-menu');
+    if (!bouton) { return; }
+    var palier = parseInt(nav.getAttribute('data-menu'), 10);
+    if (!Number.isFinite(palier)) { palier = 599; }
+    var etroit = window.matchMedia('(max-width: ' + palier + 'px)');
+
+    function etat(ouvert) {
+      nav.setAttribute('data-ouvert', ouvert ? 'oui' : 'non');
+      bouton.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+    }
 
     function appliquer() {
       if (etroit.matches) {
         bouton.hidden = false;
-        if (!nav.hasAttribute('data-ouvert')) { nav.setAttribute('data-ouvert', 'non'); }
-        bouton.setAttribute('aria-expanded', nav.getAttribute('data-ouvert') === 'oui' ? 'true' : 'false');
+        etat(nav.getAttribute('data-ouvert') === 'oui');
       } else {
         bouton.hidden = true;
         nav.removeAttribute('data-ouvert');
@@ -107,9 +116,20 @@
     }
 
     bouton.addEventListener('click', function () {
-      var ouvert = nav.getAttribute('data-ouvert') === 'oui';
-      nav.setAttribute('data-ouvert', ouvert ? 'non' : 'oui');
-      bouton.setAttribute('aria-expanded', ouvert ? 'false' : 'true');
+      etat(nav.getAttribute('data-ouvert') !== 'oui');
+    });
+
+    /* Échap referme le menu et ramène le focus sur le bouton qui l'ouvre. */
+    nav.addEventListener('keydown', function (evt) {
+      if (evt.key === 'Escape' && nav.getAttribute('data-ouvert') === 'oui') {
+        etat(false);
+        bouton.focus();
+      }
+    });
+    bouton.addEventListener('keydown', function (evt) {
+      if (evt.key === 'Escape' && nav.getAttribute('data-ouvert') === 'oui') {
+        etat(false);
+      }
     });
 
     if (typeof etroit.addEventListener === 'function') { etroit.addEventListener('change', appliquer); }
@@ -117,7 +137,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    initMenu();
+    Array.prototype.forEach.call(document.querySelectorAll('nav.nav[data-menu]'), initMenu);
     Array.prototype.forEach.call(document.querySelectorAll('form[data-validation]'), initFormulaire);
 
     var cible = document.querySelector('[data-focus-initial]');
@@ -125,4 +145,34 @@
       cible.focus();
     }
   });
+
+  /* Export statique (GitHub Pages) : sans serveur, les filtres du catalogue
+     s'appliquent dans le navigateur à partir des attributs data-* des cartes. */
+  var filtreLocal = document.querySelector('form[data-filtre-local]');
+  if (filtreLocal) {
+    var champsFiltre = ['espece', 'tranche', 'taille'];
+    var appliquer = function () {
+      var n = 0;
+      var cartes = document.querySelectorAll('.liste-animaux > li');
+      Array.prototype.forEach.call(cartes, function (li) {
+        var ok = champsFiltre.every(function (c) {
+          var v = filtreLocal.elements[c] ? filtreLocal.elements[c].value : '';
+          return !v || li.getAttribute('data-' + c) === v;
+        });
+        li.hidden = !ok;
+        if (ok) { n += 1; }
+      });
+      var res = document.querySelector('[data-resultats]');
+      if (res) { res.textContent = n + (n > 1 ? ' animaux trouvés' : ' animal trouvé'); }
+    };
+    var params = new URLSearchParams(window.location.search);
+    champsFiltre.forEach(function (c) {
+      if (params.get(c) && filtreLocal.elements[c]) { filtreLocal.elements[c].value = params.get(c); }
+    });
+    filtreLocal.addEventListener('submit', function (e) {
+      e.preventDefault();
+      appliquer();
+    });
+    appliquer();
+  }
 }());

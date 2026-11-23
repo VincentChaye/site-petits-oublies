@@ -32,6 +32,17 @@
   --alerte-texte: #7A3E00;
   --focus: #1B4FA8;
 
+  /* Séries de graphiques (fiches conseils), dans un ordre fixe : une couleur
+     par entité, jamais recyclée selon le rang. Jeu vérifié sur fond blanc
+     (bande de clarté, chroma, séparation daltonisme ≥ 8 ΔE, contraste ≥ 3:1).
+     Le vert est celui de la charte ; les trois autres s'en écartent assez pour
+     rester distinguables en protanopie et en deutéranopie. */
+  --serie-1: #3F6B2E;
+  --serie-2: #C9821B;
+  --serie-3: #1B4FA8;
+  --serie-4: #A8406B;
+  --piste: #EDE2D2;
+
   /* Échelle d'espacement (base 4 px) */
   --esp-1: .25rem;
   --esp-2: .5rem;
@@ -67,6 +78,7 @@ body {
   color: var(--texte);
   background: var(--fond);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-wrap: anywhere;
@@ -163,8 +175,8 @@ a:hover { text-decoration-thickness: 2px; }
   text-decoration: none; cursor: pointer;
 }
 .bouton:hover { background: var(--primaire-fonce); border-color: var(--primaire-fonce); }
-.bouton-secondaire { color: var(--lien); background: var(--carte); }
-.bouton-secondaire:hover { color: #FFFFFF; }
+.bouton-secondaire { color: var(--lien); background: var(--carte); border-color: var(--lien); }
+.bouton-secondaire:hover { color: #FFFFFF; background: var(--primaire-fonce); border-color: var(--primaire-fonce); }
 .bouton-danger { background: var(--erreur); border-color: var(--erreur); }
 .bouton-danger:hover { background: #7F1414; border-color: #7F1414; }
 
@@ -175,6 +187,8 @@ a:hover { text-decoration-thickness: 2px; }
 .aide { display: block; margin: 0 0 var(--esp-2); color: var(--secondaire); font-size: .9375rem; }
 .champ input[type="text"], .champ input[type="email"], .champ input[type="tel"],
 .champ input[type="password"], .champ input[type="datetime-local"], .champ input[type="search"],
+.champ input[type="number"], .champ input[type="date"], .champ input[type="time"],
+.champ input[type="url"],
 .champ select, .champ textarea {
   display: block; width: 100%; min-height: var(--cible);
   padding: var(--esp-2) var(--esp-3);
@@ -196,7 +210,11 @@ a:hover { text-decoration-thickness: 2px; }
 .resume-erreurs { color: var(--erreur); background: #FFFFFF; border-color: var(--erreur); }
 .resume-erreurs h2, .resume-erreurs h3 { font-size: 1.0625rem; margin-top: 0; margin-bottom: var(--esp-2); }
 .resume-erreurs ul { margin: 0; padding-left: var(--esp-5); }
-.resume-erreurs a { color: var(--erreur); display: inline-block; min-height: var(--cible); line-height: var(--cible); }
+.resume-erreurs ul { display: flex; flex-direction: column; }
+.resume-erreurs li { margin: 0; }
+/* Cible de 44 px obtenue par le remplissage : un `line-height` de 44 px
+   disloquerait les messages d'erreur qui passent a la ligne. */
+.resume-erreurs a { color: var(--erreur); display: inline-flex; align-items: center; min-height: var(--cible); padding: var(--esp-1) 0; }
 .confirmation { color: var(--succes-texte); background: var(--succes-fond); border-color: var(--succes-texte); }
 .alerte { color: var(--alerte-texte); background: var(--alerte-fond); border-color: var(--alerte-texte); }
 
@@ -242,6 +260,12 @@ a:hover { text-decoration-thickness: 2px; }
 /* Pages de texte */
 .texte-page { max-width: 46rem; }
 .contact-liste { list-style: none; padding: 0; margin: 0 0 var(--esp-4); }
+/* Liens isoles dans une liste ou seuls dans un paragraphe : ce ne sont pas des
+   liens « en ligne dans une phrase », la cible doit donc atteindre 44 px. */
+.contact-liste a, .liste-liens a, .lien-bloc {
+  display: inline-flex; align-items: center; min-height: var(--cible);
+}
+.liste-liens { list-style: none; padding: 0; margin: 0 0 var(--esp-4); }
 
 @media (min-width: 600px) {
   h1 { font-size: 2.125rem; }
@@ -292,11 +316,16 @@ a:hover { text-decoration-thickness: 2px; }
 .bouton-menu {
   display: inline-flex; align-items: center; gap: var(--esp-2);
   min-height: var(--cible); padding: 0 var(--esp-3);
+  /* La règle globale `overflow-wrap: anywhere` coupait « Menu » en « Men / u ». */
+  white-space: nowrap; flex: 0 0 auto;
   font: inherit; font-weight: 700; color: var(--lien);
   background: var(--carte); border: 2px solid var(--lien); border-radius: var(--rayon);
   cursor: pointer;
 }
-.bouton-menu[hidden] { display: none; }
+/* Sans script l'attribut `hidden` du gabarit suffit : aucune requete de media
+   ne masque ce bouton, pour que l'espace interne puisse replier son menu
+   jusqu'a 900 px (palier porte par `data-menu`, lu par main.js). */
+.bouton-menu[hidden] { display: none !important; }
 .bouton-menu::before { content: ""; width: 1.125rem; height: 2px; box-shadow: 0 -5px 0 currentColor, 0 5px 0 currentColor; background: currentColor; }
 .entete-barre { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); }
 .nav[data-ouvert="non"] > ul { display: none; }
@@ -346,12 +375,69 @@ a:hover { text-decoration-thickness: 2px; }
 .calculateur-resultat { font-weight: 700; font-size: 1.125rem; margin: var(--esp-4) 0 0; }
 .calculateur-formule { color: var(--secondaire); }
 
+/* ── Visuels des fiches conseils (chiffres clés, barres, anneau) ─────────────
+   Rendus côté serveur, sans JavaScript ni `style` en ligne (la CSP interdit
+   `style-src 'unsafe-inline'`) : les largeurs passent par les attributs de
+   géométrie SVG, les couleurs par les classes `.g-serie-*`. Chaque valeur est
+   écrite en texte à côté de sa barre ou de sa part, donc la couleur ne porte
+   jamais seule l'information et aucune infobulle n'est nécessaire. */
+.graphique { margin: var(--esp-5) 0; padding: var(--esp-4); background: var(--carte); border: 1px solid var(--bord); border-radius: var(--rayon); }
+.graphique-titre { font-weight: 700; margin-bottom: var(--esp-4); }
+.graphique-note { color: var(--secondaire); font-size: .9375rem; margin: var(--esp-3) 0 0; }
+
+.g-serie-1 { fill: var(--serie-1); background: var(--serie-1); stroke: var(--serie-1); }
+.g-serie-2 { fill: var(--serie-2); background: var(--serie-2); stroke: var(--serie-2); }
+.g-serie-3 { fill: var(--serie-3); background: var(--serie-3); stroke: var(--serie-3); }
+.g-serie-4 { fill: var(--serie-4); background: var(--serie-4); stroke: var(--serie-4); }
+
+/* Chiffres clés : pas un graphique, un nombre mis en avant. */
+.g-chiffres { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-3); grid-template-columns: 1fr; }
+.g-chiffres > li { background: var(--vert-bande); border-radius: var(--rayon); padding: var(--esp-4); text-align: center; }
+.g-chiffre { display: block; font-size: 1.75rem; line-height: 1.2; font-weight: 700; color: var(--primaire-fonce); }
+.g-chiffre-lib { display: block; margin-top: var(--esp-1); color: var(--secondaire); font-size: .9375rem; }
+
+/* Barres horizontales : libellé, piste, valeur. */
+.g-barres { list-style: none; margin: 0; padding: 0; }
+.g-barres > li { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: var(--esp-1) var(--esp-3); margin-bottom: var(--esp-3); }
+.g-barres > li:last-child { margin-bottom: 0; }
+.g-barre-lib { font-size: .9375rem; }
+.g-barre-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.g-piste { grid-column: 1 / -1; display: block; width: 100%; height: 14px; overflow: visible; }
+.g-piste-fond { fill: var(--piste); }
+.g-repere-trait { stroke: var(--primaire-fonce); stroke-width: 2px; stroke-dasharray: 3 2; }
+.g-repere-legende { display: flex; align-items: center; gap: var(--esp-2); color: var(--secondaire); font-size: .9375rem; margin: var(--esp-3) 0 0; }
+.g-puce-repere { flex: 0 0 auto; width: 2px; height: 1rem; background: repeating-linear-gradient(var(--primaire-fonce) 0 3px, transparent 3px 5px); }
+
+/* Anneau : rayon 15,9155 => circonférence 100, les parts sont des pourcentages. */
+.g-anneau-bloc { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-4) var(--esp-5); }
+.g-anneau { flex: 0 0 auto; width: 9.5rem; height: 9.5rem; }
+.g-anneau-fond { fill: none; stroke: var(--piste); stroke-width: 6; }
+.g-anneau-part { fill: none; stroke-width: 6; }
+.g-legende { list-style: none; margin: 0; padding: 0; flex: 1 1 12rem; }
+.g-legende > li { display: flex; align-items: baseline; gap: var(--esp-2); margin-bottom: var(--esp-2); }
+.g-legende > li:last-child { margin-bottom: 0; }
+.g-puce { flex: 0 0 auto; width: .75rem; height: .75rem; border-radius: 2px; transform: translateY(1px); }
+.g-legende-lib { flex: 1 1 auto; font-size: .9375rem; }
+.g-legende-val { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Couleurs imposées par le système : les marques gardent un contour, et la
+   valeur écrite à côté de chaque marque reste la source d'information. */
+@media (forced-colors: active) {
+  .g-puce, .g-chiffres > li { border: 1px solid CanvasText; }
+  .g-anneau-part, .g-repere-trait { stroke: CanvasText; }
+  .g-anneau-fond { stroke: GrayText; }
+  .g-barre { fill: CanvasText; }
+  .g-piste-fond { fill: Canvas; stroke: GrayText; stroke-width: 1px; }
+}
+
 @media (min-width: 600px) {
   .liste-cartes { grid-template-columns: repeat(2, 1fr); }
   .liste-conseils { grid-template-columns: repeat(2, 1fr); }
+  /* Au-delà de 600 px, le libellé passe à gauche de sa barre. */
+  .g-barres > li { grid-template-columns: minmax(7rem, 13rem) 1fr auto; }
+  .g-piste { grid-column: auto; }
+  .g-chiffres { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
   .nav > ul { flex-direction: row; align-items: center; }
-  .bouton-menu { display: none !important; }
-  .nav[data-ouvert="non"] > ul { display: flex; }
   .bande { padding: var(--esp-6) var(--esp-5); }
 }
 

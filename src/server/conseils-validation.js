@@ -6,7 +6,7 @@
  * accepté : le texte est échappé à l'affichage, comme partout ailleurs.
  * @module server/conseils-validation
  */
-import { TYPES_SECTION } from './content.js';
+import { TYPES_SECTION, TYPES_GRAPHIQUE } from './content.js';
 
 /** Champs de la fiche acceptés dans le formulaire (hors _csrf et _version). */
 export const CHAMPS_FICHE = Object.freeze(['slug', 'titre', 'resume', 'icone', 'outil', 'sections']);
@@ -26,16 +26,124 @@ const SECTION_MAX = Object.freeze({ titre: 160, texte: 4000, conseil: 2000, elem
 const MAX_SECTIONS = 40;
 const MAX_ELEMENTS = 30;
 
+/* Visuels (chiffres clés, barres, anneau) : bornes de saisie et nombre de
+   données acceptées par type. Au-delà de 4 chiffres clés ou de 6 parts
+   d'anneau le visuel devient illisible, d'où ces plafonds volontairement bas. */
+const GRAPHIQUE_MAX = Object.freeze({ libelle: 80, chiffre: 24, unite: 8, note: 300, valeur: 1e6 });
+const GRAPHIQUE_PARTS = Object.freeze({
+  chiffres: { min: 1, max: 4 }, barres: { min: 1, max: 12 }, anneau: { min: 2, max: 6 },
+});
+/** Directives acceptées dans le corps d'un visuel, par type. */
+const GRAPHIQUE_CLES = Object.freeze({
+  chiffres: ['note'], barres: ['unite', 'max', 'repere', 'note'], anneau: ['unite', 'note'],
+});
+
 /** Libellés des types de section, pour le formulaire interne. */
 export const LIBELLES_TYPE = Object.freeze({
   texte: 'Paragraphe', liste: 'Liste à puces', conseil: 'Encadré « conseil »',
   saviez_vous: 'Encadré « le saviez-vous ? »', probleme: 'Problème + conseil',
+  chiffres: 'Chiffres clés (encadrés)', barres: 'Graphique en barres', anneau: 'Graphique en anneau',
 });
 
 /** Texte libre d'une section : contrôles supprimés, sauts de ligne conservés. */
 const nettoyer = (v) => (typeof v === 'string' ? v.normalize('NFC').replace(/\r\n?/g, '\n').replace(/(?!\n)[\p{Cc}\p{Zl}\p{Zp}]/gu, '').trim() : '');
 /** Texte d'une seule ligne. */
 const ligne = (v) => (typeof v === 'string' ? v.normalize('NFC').replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/ {2,}/g, ' ').trim() : '');
+
+/** Nombre décimal d'un visuel : virgule acceptée, espaces fines ignorées. */
+function nombreVisuel(brut) {
+  const net = brut.replace(/[\u202F\u00A0\s]/g, '').replace(',', '.');
+  if (!/^\d+(\.\d+)?$/.test(net)) return NaN;
+  const n = Number(net);
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/**
+ * Lit le corps d'une section visuelle (`chiffres`, `barres`, `anneau`).
+ * Les données s'écrivent une par ligne, « - libellé | valeur » ; les autres
+ * lignes sont des directives « clé : valeur » (unite, max, repere, note).
+ * La section est complétée sur place, champ par champ (jamais de recopie
+ * générique de la saisie).
+ * @param {string} type Type de visuel.
+ * @param {string} corps Corps de la section.
+ * @param {Object} section Section en construction.
+ * @returns {string|null} Message d'erreur, ou null si la section est valide.
+ */
+function lireVisuel(type, corps, section) {
+  const elements = [];
+  const options = {};
+  const cles = GRAPHIQUE_CLES[type];
+
+  for (const brut of corps.split('\n')) {
+    const l = brut.trim();
+    if (!l) continue;
+
+    if (/^[-*\u2022]/.test(l)) {
+      const reste = l.replace(/^[-*\u2022]\s*/, '');
+      const sep = reste.lastIndexOf('|');
+      const libelle = sep >= 0 ? ligne(reste.slice(0, sep)) : '';
+      const valeurBrute = sep >= 0 ? ligne(reste.slice(sep + 1)) : '';
+      if (!libelle || !valeurBrute) return 'chaque donnée s’écrit « - libellé | valeur ».';
+      if ([...libelle].length > GRAPHIQUE_MAX.libelle) return `un libellé dépasse ${GRAPHIQUE_MAX.libelle} caractères.`;
+      if (type === 'chiffres') {
+        if ([...valeurBrute].length > GRAPHIQUE_MAX.chiffre) return `un chiffre clé dépasse ${GRAPHIQUE_MAX.chiffre} caractères.`;
+        elements.push({ libelle, valeur: valeurBrute });
+      } else {
+        const n = nombreVisuel(valeurBrute);
+        if (Number.isNaN(n) || n > GRAPHIQUE_MAX.valeur) return `« ${valeurBrute.slice(0, 20)} » n’est pas un nombre positif.`;
+        elements.push({ libelle, valeur: n });
+      }
+      continue;
+    }
+
+    const m = l.match(/^([a-zA-Zéè]+)\s*:\s*(.+)$/);
+    const cle = m ? ligne(m[1]).toLowerCase().replace('é', 'e').replace('è', 'e') : '';
+    if (!m || !cles.includes(cle)) {
+      return `ligne « ${l.slice(0, 30)} » non comprise : écrivez « - libellé | valeur », ou ${cles.map((c) => `« ${c} : … »`).join(', ')}.`;
+    }
+    if (Object.hasOwn(options, cle)) return `la ligne « ${cle} » est écrite deux fois.`;
+    options[cle] = ligne(m[2]);
+  }
+
+  const bornes = GRAPHIQUE_PARTS[type];
+  if (elements.length < bornes.min) return `écrivez au moins ${bornes.min} ${bornes.min > 1 ? 'données' : 'donnée'} « - libellé | valeur ».`;
+  if (elements.length > bornes.max) return `pas plus de ${bornes.max} données pour ce visuel.`;
+
+  if (Object.hasOwn(options, 'unite') && [...options.unite].length > GRAPHIQUE_MAX.unite) {
+    return `l’unité dépasse ${GRAPHIQUE_MAX.unite} caractères.`;
+  }
+  if (Object.hasOwn(options, 'note') && [...options.note].length > GRAPHIQUE_MAX.note) {
+    return `la note dépasse ${GRAPHIQUE_MAX.note} caractères.`;
+  }
+
+  const plusGrande = type === 'chiffres' ? 0 : Math.max(...elements.map((e) => e.valeur));
+  let max = null;
+  if (Object.hasOwn(options, 'max')) {
+    max = nombreVisuel(options.max);
+    if (Number.isNaN(max) || max <= 0 || max > GRAPHIQUE_MAX.valeur) return '« max » doit être un nombre supérieur à zéro.';
+    if (max < plusGrande) return `« max » (${max}) est inférieur à la plus grande valeur (${plusGrande}).`;
+  }
+
+  let repere = null;
+  if (Object.hasOwn(options, 'repere')) {
+    const sep = options.repere.indexOf('|');
+    const valeur = nombreVisuel(sep >= 0 ? options.repere.slice(0, sep) : options.repere);
+    const libelle = sep >= 0 ? ligne(options.repere.slice(sep + 1)) : '';
+    if (Number.isNaN(valeur)) return '« repere » doit être un nombre, suivi au besoin de « | son explication ».';
+    if (valeur > (max ?? plusGrande)) return 'le repère sort du graphique : augmentez « max ».';
+    if ([...libelle].length > GRAPHIQUE_MAX.libelle) return `l’explication du repère dépasse ${GRAPHIQUE_MAX.libelle} caractères.`;
+    repere = libelle ? { valeur, libelle } : { valeur };
+  }
+
+  if (type === 'anneau' && !plusGrande) return 'un anneau a besoin d’au moins une part supérieure à zéro.';
+
+  section.elements = elements;
+  if (Object.hasOwn(options, 'unite')) section.unite = options.unite;
+  if (max !== null) section.max = max;
+  if (repere) section.repere = repere;
+  if (Object.hasOwn(options, 'note')) section.note = options.note;
+  return null;
+}
 
 /**
  * Lit les sections saisies. Le formulaire les envoie sous forme de texte
@@ -73,6 +181,9 @@ export function lireSections(brut) {
       if (elements.length > MAX_ELEMENTS) return { sections: [], erreur: `Section ${i + 1} : pas plus de ${MAX_ELEMENTS} éléments.` };
       if (elements.some((e) => e.length > SECTION_MAX.element)) return { sections: [], erreur: `Section ${i + 1} : un élément dépasse ${SECTION_MAX.element} caractères.` };
       section.elements = elements;
+    } else if (TYPES_GRAPHIQUE.includes(type)) {
+      const erreur = lireVisuel(type, corps, section);
+      if (erreur) return { sections: [], erreur: `Section ${i + 1} : ${erreur}` };
     } else if (type === 'probleme') {
       // « Conseil : … » sur une ligne isolée sépare le problème de son conseil.
       const m = corps.match(/^([\s\S]*?)\n\s*conseil\s*:\s*([\s\S]+)$/i);
@@ -100,6 +211,14 @@ export function ecrireSections(sections) {
   return (sections ?? []).map((s) => {
     const entete = s.titre ? `${s.type}: ${s.titre}` : s.type;
     if (s.type === 'liste') return `${entete}\n${(s.elements ?? []).map((e) => `- ${e}`).join('\n')}`;
+    if (TYPES_GRAPHIQUE.includes(s.type)) {
+      const lignes = (s.elements ?? []).map((e) => `- ${e.libelle} | ${String(e.valeur).replace('.', ',')}`);
+      if (s.unite) lignes.unshift(`unite : ${s.unite}`);
+      if (s.max != null) lignes.unshift(`max : ${String(s.max).replace('.', ',')}`);
+      if (s.repere) lignes.unshift(`repere : ${String(s.repere.valeur).replace('.', ',')}${s.repere.libelle ? ` | ${s.repere.libelle}` : ''}`);
+      if (s.note) lignes.push(`note : ${s.note}`);
+      return `${entete}\n${lignes.join('\n')}`;
+    }
     if (s.type === 'probleme') return `${entete}\n${s.texte}${s.conseil ? `\nConseil : ${s.conseil}` : ''}`;
     return `${entete}\n${s.texte ?? ''}`;
   }).join('\n---\n');

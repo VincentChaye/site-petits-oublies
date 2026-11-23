@@ -4,11 +4,14 @@
   "private": true,
   "description": "Site de l'association de protection animale Les Petits Oubliés",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "start": "node src/server/index.js",
     "test": "node --test \"src/security/**/*.test.js\" \"src/integrations/**/*.test.js\" \"tests/**/*.test.js\"",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "build:static": "node scripts/build-static.js"
   },
   "dependencies": {
     "ejs": "^3.1.10",

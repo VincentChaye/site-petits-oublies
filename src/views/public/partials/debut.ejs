@@ -66,7 +66,7 @@
         </a>
         <button type="button" class="bouton-menu" hidden aria-expanded="false" aria-controls="menu-principal">Menu</button>
       </div>
-      <nav class="nav" data-menu aria-label="Navigation principale">
+      <nav class="nav" data-menu="599" aria-label="Navigation principale">
         <ul id="menu-principal">
 <% _nav.forEach(function (n) { %>          <li><a href="<%= n.url %>"<% if (locals.actif === n.cle) { %> aria-current="page"<% } %>><%= n.nom %></a></li>
 <% }); %>        </ul>

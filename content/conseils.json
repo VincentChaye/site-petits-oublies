@@ -1,20 +1,136 @@
 [
-{
-"slug":"alimentation-du-chat",
-"titre":"Bien nourrir son chat",
-"resume":"Quatre erreurs fréquentes dans la gamelle, et le conseil correspondant : protéines animales, glucides, hydratation et dosage.",
-"icone":"chat",
-"outil":"glucides",
-"_version":1,
-"sections":[
-{"type":"saviez_vous","titre":"Le saviez-vous ?","texte":"Un chat mange environ 10 000 repas au cours de sa vie. Pourtant, peu de propriétaires savent décrire précisément ce qu'ils versent dans la gamelle tous les jours. Les maladies chroniques liées à l'alimentation, comme le diabète ou l'insuffisance rénale, sont en hausse constante depuis dix ans, et l'obésité toucherait aujourd'hui près d'un chat sur trois."},
-{"type":"texte","texte":"Si l'alimentation est le pilier du bien-être — au point que nous menons depuis des années un combat contre la malbouffe et pour la transparence dans nos assiettes — il doit en être de même pour nos compagnons félins. Ces repères ne remplacent pas l'avis de votre vétérinaire, qui reste la référence pour votre animal."},
-{"type":"probleme","titre":"Problème 1 : le manque de protéines animales","texte":"On en trouve parfois moins de 20 % dans certaines recettes de croquettes, alors qu'elles sont tout simplement essentielles à l'organisme du chat. Parce que les chats sont des carnivores, les protéines animales sont une source nutritionnelle et énergétique indispensable à leur forme physique.","conseil":"Choisir des croquettes contenant au moins 30 % de protéines animales, de la meilleure qualité possible."},
-{"type":"probleme","titre":"Problème 2 : la sur-présence des glucides","texte":"Si certains glucides ont des bienfaits sur le transit ou le système immunitaire, d'autres, comme l'amidon, servent quasi exclusivement à solidifier la croquette — il est impossible d'en fabriquer une sans amidon. Les céréales sont la source d'amidon la plus fréquente. Or beaucoup d'entre elles, notamment le blé, contiennent du gluten, décrit depuis quelques années comme une source d'intolérances et d'allergies chez le chat lorsqu'il est présent en trop grande quantité. Autre inconvénient du blé ou du maïs : des mycotoxines et des moisissures, très toxiques pour les chats, peuvent s'y développer plus facilement.","conseil":"Choisir des croquettes idéalement sans céréales — avec d'autres sources d'amidon, légumineuses ou tubercules — et contenant moins de 25 % de glucides."},
-{"type":"texte","titre":"Le taux de glucides n'est jamais écrit sur le paquet","texte":"Les industriels ne sont pas tenus de l'indiquer : il faut le calculer à partir des autres valeurs de l'étiquette. Quand une valeur manque, comptez 6 à 8 % de cendres brutes, 3 à 5 % de cellulose brute et 5 à 10 % d'humidité."},
-{"type":"probleme","titre":"Problème 3 : l'hydratation insuffisante","texte":"Nos chats n'aiment pas beaucoup l'eau, qu'il s'agisse de s'y baigner ou de la boire. Leur organisme doit pourtant être suffisamment hydraté, en particulier leur appareil urinaire et rénal, souvent l'objet de dérèglements lorsque l'alimentation est exclusivement sèche. Les croquettes ont une teneur en eau de 5 à 10 % seulement : elles ne fournissent pas, dans la plupart des cas, les 20 à 25 cl qu'un chat de poids moyen est censé boire chaque jour.","conseil":"Donner environ un tiers de la ration journalière sous forme de pâtée, le reste en croquettes. C'est l'alimentation mixte : l'eau de la pâtée aide à prévenir les infections urinaires et la formation de calculs rénaux."},
-{"type":"probleme","titre":"Problème 4 : le surdosage","texte":"Lequel d'entre nous n'a jamais donné une poignée de croquettes sans en connaître le dosage précis ? En voulant faire plaisir à un matou affamé dont la capacité d'autorégulation laisse parfois à désirer, on surdose sans le savoir. Or près d'un chat sur deux souffrirait de surpoids ou d'obésité en France, ce qui favorise, comme chez l'humain, des maladies chroniques telles que le diabète.","conseil":"Déterminer avec son vétérinaire le besoin énergétique du chat selon son profil (âge, poids, corpulence, stérilisation) et son mode de vie (intérieur, extérieur), puis doser précisément les portions quotidiennes, à la balance alimentaire. La quantité du jour peut être répartie en plusieurs repas pour les chats qui s'autorégulent mal."},
-{"type":"liste","titre":"À retenir","elements":["Au moins 30 % de protéines animales","Moins de 25 % de glucides, idéalement sans céréales","Environ un tiers de la ration en pâtée","Des portions pesées, définies avec le vétérinaire"]}
-]
-}
+  {
+    "slug": "alimentation-du-chat",
+    "titre": "Bien nourrir son chat",
+    "resume": "Quatre erreurs fréquentes dans la gamelle, et le conseil correspondant : protéines animales, glucides, hydratation et dosage.",
+    "icone": "chat",
+    "outil": "glucides",
+    "_version": 2,
+    "sections": [
+      {
+        "type": "saviez_vous",
+        "titre": "Le saviez-vous ?",
+        "texte": "Un chat mange environ 10 000 repas au cours de sa vie. Pourtant, peu de propriétaires savent décrire précisément ce qu'ils versent dans la gamelle tous les jours. Les maladies chroniques liées à l'alimentation, comme le diabète ou l'insuffisance rénale, sont en hausse constante depuis dix ans, et l'obésité toucherait aujourd'hui près d'un chat sur trois."
+      },
+      {
+        "type": "chiffres",
+        "titre": "L’alimentation du chat en trois chiffres",
+        "elements": [
+          {
+            "libelle": "repas environ dans une vie de chat",
+            "valeur": "10 000"
+          },
+          {
+            "libelle": "chats touchés par l’obésité",
+            "valeur": "1 sur 3"
+          },
+          {
+            "libelle": "chats en surpoids ou obèses en France",
+            "valeur": "près d’1 sur 2"
+          }
+        ],
+        "note": "Ordres de grandeur cités dans cette fiche : ils situent le problème, ils ne décrivent pas votre chat."
+      },
+      {
+        "type": "texte",
+        "texte": "Si l'alimentation est le pilier du bien-être — au point que nous menons depuis des années un combat contre la malbouffe et pour la transparence dans nos assiettes — il doit en être de même pour nos compagnons félins. Ces repères ne remplacent pas l'avis de votre vétérinaire, qui reste la référence pour votre animal."
+      },
+      {
+        "type": "probleme",
+        "titre": "Problème 1 : le manque de protéines animales",
+        "texte": "On en trouve parfois moins de 20 % dans certaines recettes de croquettes, alors qu'elles sont tout simplement essentielles à l'organisme du chat. Parce que les chats sont des carnivores, les protéines animales sont une source nutritionnelle et énergétique indispensable à leur forme physique.",
+        "conseil": "Choisir des croquettes contenant au moins 30 % de protéines animales, de la meilleure qualité possible."
+      },
+      {
+        "type": "barres",
+        "titre": "Protéines animales : ce que contiennent les croquettes",
+        "unite": "%",
+        "max": 50,
+        "repere": {
+          "valeur": 30,
+          "libelle": "le minimum conseillé par de nombreux experts"
+        },
+        "elements": [
+          {
+            "libelle": "Recettes les plus pauvres du marché",
+            "valeur": 20
+          }
+        ],
+        "note": "Certaines recettes descendent même sous 20 % de protéines animales, soit un tiers de moins que le repère."
+      },
+      {
+        "type": "probleme",
+        "titre": "Problème 2 : la sur-présence des glucides",
+        "texte": "Si certains glucides ont des bienfaits sur le transit ou le système immunitaire, d'autres, comme l'amidon, servent quasi exclusivement à solidifier la croquette — il est impossible d'en fabriquer une sans amidon. Les céréales sont la source d'amidon la plus fréquente. Or beaucoup d'entre elles, notamment le blé, contiennent du gluten, décrit depuis quelques années comme une source d'intolérances et d'allergies chez le chat lorsqu'il est présent en trop grande quantité. Autre inconvénient du blé ou du maïs : des mycotoxines et des moisissures, très toxiques pour les chats, peuvent s'y développer plus facilement.",
+        "conseil": "Choisir des croquettes idéalement sans céréales — avec d'autres sources d'amidon, légumineuses ou tubercules — et contenant moins de 25 % de glucides."
+      },
+      {
+        "type": "texte",
+        "titre": "Le taux de glucides n'est jamais écrit sur le paquet",
+        "texte": "Les industriels ne sont pas tenus de l'indiquer : il faut le calculer à partir des autres valeurs de l'étiquette. Quand une valeur manque, comptez 6 à 8 % de cendres brutes, 3 à 5 % de cellulose brute et 5 à 10 % d'humidité."
+      },
+      {
+        "type": "anneau",
+        "titre": "Exemple d’étiquette : les glucides apparaissent une fois le calcul fait",
+        "unite": "%",
+        "elements": [
+          {
+            "libelle": "Protéines",
+            "valeur": 32
+          },
+          {
+            "libelle": "Matières grasses",
+            "valeur": 12
+          },
+          {
+            "libelle": "Cendres, cellulose et humidité",
+            "valeur": 20
+          },
+          {
+            "libelle": "Glucides (part déduite, jamais imprimée)",
+            "valeur": 36
+          }
+        ],
+        "note": "Exemple obtenu avec la formule du calculateur ci-dessous : 100 − 32 − 12 − 20 = 36 % de glucides, bien au-dessus du repère de 25 %."
+      },
+      {
+        "type": "probleme",
+        "titre": "Problème 3 : l'hydratation insuffisante",
+        "texte": "Nos chats n'aiment pas beaucoup l'eau, qu'il s'agisse de s'y baigner ou de la boire. Leur organisme doit pourtant être suffisamment hydraté, en particulier leur appareil urinaire et rénal, souvent l'objet de dérèglements lorsque l'alimentation est exclusivement sèche. Les croquettes ont une teneur en eau de 5 à 10 % seulement : elles ne fournissent pas, dans la plupart des cas, les 20 à 25 cl qu'un chat de poids moyen est censé boire chaque jour.",
+        "conseil": "Donner environ un tiers de la ration journalière sous forme de pâtée, le reste en croquettes. C'est l'alimentation mixte : l'eau de la pâtée aide à prévenir les infections urinaires et la formation de calculs rénaux."
+      },
+      {
+        "type": "anneau",
+        "titre": "La ration d’une journée en alimentation mixte",
+        "unite": "%",
+        "elements": [
+          {
+            "libelle": "Pâtée (apport d’eau)",
+            "valeur": 33
+          },
+          {
+            "libelle": "Croquettes",
+            "valeur": 67
+          }
+        ],
+        "note": "Environ un tiers de la ration quotidienne en pâtée : c’est son eau qui aide à prévenir infections urinaires et calculs rénaux."
+      },
+      {
+        "type": "probleme",
+        "titre": "Problème 4 : le surdosage",
+        "texte": "Lequel d'entre nous n'a jamais donné une poignée de croquettes sans en connaître le dosage précis ? En voulant faire plaisir à un matou affamé dont la capacité d'autorégulation laisse parfois à désirer, on surdose sans le savoir. Or près d'un chat sur deux souffrirait de surpoids ou d'obésité en France, ce qui favorise, comme chez l'humain, des maladies chroniques telles que le diabète.",
+        "conseil": "Déterminer avec son vétérinaire le besoin énergétique du chat selon son profil (âge, poids, corpulence, stérilisation) et son mode de vie (intérieur, extérieur), puis doser précisément les portions quotidiennes, à la balance alimentaire. La quantité du jour peut être répartie en plusieurs repas pour les chats qui s'autorégulent mal."
+      },
+      {
+        "type": "liste",
+        "titre": "À retenir",
+        "elements": [
+          "Au moins 30 % de protéines animales",
+          "Moins de 25 % de glucides, idéalement sans céréales",
+          "Environ un tiers de la ration en pâtée",
+          "Des portions pesées, définies avec le vétérinaire"
+        ]
+      }
+    ]
+  }
 ]

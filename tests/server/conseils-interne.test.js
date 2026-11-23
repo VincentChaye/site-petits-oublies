@@ -195,6 +195,14 @@ test('422 : slug, titre, résumé, outil et sections validés', async () => {
     ['type de section inconnu', fiche({ slug: 'autre-fiche', sections: 'citation: Untel\nUn texte.' })],
     ['problème sans titre', fiche({ slug: 'autre-fiche', sections: 'probleme:\nUn texte.' })],
     ['liste vide', fiche({ slug: 'autre-fiche', sections: 'liste: À retenir' })],
+    ['visuel sans donnée', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\nunite : %' })],
+    ['donnée sans valeur', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\n- Recettes pauvres' })],
+    ['valeur non numérique', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\n- Recettes pauvres | beaucoup' })],
+    ['max plus petit que la plus grande valeur', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\nmax : 10\n- Recettes pauvres | 20' })],
+    ['repère hors du graphique', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\nrepere : 40\n- Recettes pauvres | 20' })],
+    ['directive inconnue', fiche({ slug: 'autre-fiche', sections: 'barres: Protéines\ncouleur : rouge\n- Recettes pauvres | 20' })],
+    ['anneau à une seule part', fiche({ slug: 'autre-fiche', sections: 'anneau: Ration\n- Pâtée | 33' })],
+    ['plus de quatre chiffres clés', fiche({ slug: 'autre-fiche', sections: ['chiffres: Clés', '- a | 1', '- b | 2', '- c | 3', '- d | 4', '- e | 5'].join('\n') })],
   ];
   for (const [nom, champs] of cas) {
     const r = await poster('/interne/conseils/nouveau', { _csrf: csrf, ...champs }, { cookie });
@@ -240,4 +248,52 @@ test('suppression : la fiche disparaît du site et du sitemap', async () => {
 
   assert.equal((await poster('/interne/conseils/inconnue/supprimer', { _csrf: csrf, _version: '0' }, { cookie })).status, 404);
   assert.equal((await poster('/interne/conseils/echappement/supprimer', { _csrf: csrf }, { cookie })).status, 422, 'version absente');
+});
+
+test('visuels : chiffres, barres et anneau enregistrés puis rendus en SVG', async () => {
+  const { cookie, csrf } = await connexion();
+  const sections = [
+    'chiffres: En deux chiffres',
+    '- bacs par chat, plus un | 1',
+    '- nettoyages par jour | 1 à 2',
+    'note : ordres de grandeur.',
+    '---',
+    'barres: Bacs disponibles par foyer',
+    'unite : bacs',
+    'max : 5',
+    'repere : 3 | le repère pour deux chats',
+    '- Foyers équipés d’un seul bac | 1',
+    '---',
+    'anneau: Répartition des bacs',
+    'unite : %',
+    '- Étage | 40',
+    '- Rez-de-chaussée | 60',
+  ].join('\n');
+
+  const r = await poster('/interne/conseils/nouveau', { _csrf: csrf, ...fiche({ slug: 'bacs-a-litiere', sections }) }, { cookie });
+  assert.equal(r.status, 303);
+
+  // Écrit en données structurées, jamais en HTML.
+  const ecrit = JSON.parse(readFileSync(join(dossierContenu, 'conseils.json'), 'utf8')).find((f) => f.slug === 'bacs-a-litiere');
+  assert.deepEqual(ecrit.sections[0].elements[1], { libelle: 'nettoyages par jour', valeur: '1 à 2' });
+  assert.equal(ecrit.sections[1].max, 5);
+  assert.deepEqual(ecrit.sections[1].repere, { valeur: 3, libelle: 'le repère pour deux chats' });
+  assert.deepEqual(ecrit.sections[2].elements.map((e) => e.valeur), [40, 60]);
+
+  // Rendu public : SVG servi tel quel, sans attribut `style` (CSP) ni script.
+  const html = await (await obtenir('/conseils/bacs-a-litiere')).text();
+  assert.match(html, /<span class="g-chiffre">1 à 2<\/span>/);
+  assert.match(html, /<rect class="g-barre g-serie-1" x="0" y="0" width="20.00"/); // 1 bac sur une échelle de 5
+  assert.match(html, /<line class="g-repere-trait" x1="60.00"/);
+  assert.match(html, /<circle class="g-anneau-part g-serie-2"/);
+  assert.ok(!/ style=/.test(html), 'aucun attribut style en ligne : la CSP interdit style-src unsafe-inline');
+
+  // Le formulaire de modification retrouve exactement la saisie.
+  const form = await (await obtenir('/interne/conseils/bacs-a-litiere/modifier', cookie)).text();
+  assert.match(form, /repere : 3 \| le repère pour deux chats/);
+  assert.match(form, /- Étage \| 40/);
+
+  const version = /name="_version" value="(\d+)"/.exec(form)[1];
+  const suppr = await poster('/interne/conseils/bacs-a-litiere/supprimer', { _csrf: csrf, _version: version }, { cookie });
+  assert.equal(suppr.status, 303);
 });

@@ -20,7 +20,7 @@
   ];
 %><%- include('partials/debut', { page: _page, actif: 'adopter', fil: _fil, robots: 'noindex, follow' }) %>
     <h1>Mon projet d’adoption : <%= animal.nom %></h1>
-    <p><a href="<%= _url %>">Retour à la fiche de <%= animal.nom %></a></p>
+    <p><a class="lien-bloc" href="<%= _url %>">Retour à la fiche de <%= animal.nom %></a></p>
 <% if (animal.statut === 'en_soins') { %>    <p class="alerte" role="note"><%= animal.nom %> est encore en soins : votre demande est la bienvenue dès maintenant, et nous vous préviendrons dès qu’une adoption sera possible.</p>
 <% } %>
 <%- include('partials/formulaire', { id: 'formulaire-interet', def: _def, titre: _def.titre.replace('{nom}', animal.nom), action: _url + '/interet', champs: _champs, etat: locals.etat, niveau: 2 }) %>

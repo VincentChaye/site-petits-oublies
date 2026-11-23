@@ -18,3 +18,6 @@ playwright-report/
 
 # Dossiers jetables des tests de bout en bout
 .tmp-e2e/
+
+# Export statique (GitHub Pages), régénéré par la CI
+dist/

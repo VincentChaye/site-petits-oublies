@@ -5,7 +5,7 @@
   const _lib = { chien: 'Chien', chat: 'Chat', lapin: 'Lapin', rongeur: 'Rongeur', oiseau: 'Oiseau', nac: 'NAC' };
   const _statuts = { disponible: 'Adoptable', en_soins: 'En soins', adopte: 'Adopté' };
   const _h = 'h' + (locals.niveau || 2);
-%><li>
+%><li data-espece="<%= a.espece %>" data-tranche="<%= a.tranche %>" data-taille="<%= a.taille %>">
   <article class="carte">
 <% if (_p) { %>    <img src="<%= _p.src %>" alt="<%= _p.alt %>" width="400" height="300" loading="lazy" decoding="async">
 <% } %>    <div class="carte-corps">

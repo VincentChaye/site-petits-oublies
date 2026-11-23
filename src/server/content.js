@@ -24,7 +24,9 @@ export const LIBELLES_TAILLE = Object.freeze({ petit: 'Petit', moyen: 'Moyen', g
 
 const ORDRE = { espece: ['chat', 'chien', 'lapin', 'rongeur', 'oiseau', 'nac'], tranche: ['jeune', 'adulte', 'senior'], taille: ['petit', 'moyen', 'grand'] };
 /** Types de sections acceptés dans une fiche conseil (pilote le rendu). */
-export const TYPES_SECTION = Object.freeze(['texte', 'liste', 'conseil', 'saviez_vous', 'probleme']);
+export const TYPES_SECTION = Object.freeze(['texte', 'liste', 'conseil', 'saviez_vous', 'probleme', 'chiffres', 'barres', 'anneau']);
+/** Types de sections rendus sous forme de visuel (chiffres clés ou graphique). */
+export const TYPES_GRAPHIQUE = Object.freeze(['chiffres', 'barres', 'anneau']);
 
 const LIBELLES = { espece: LIBELLES_ESPECE, tranche: LIBELLES_TRANCHE, taille: LIBELLES_TAILLE };
 
@@ -159,6 +161,14 @@ function construireConseils(brut) {
     for (const s of c.sections) {
       if (!TYPES_SECTION.includes(s?.type)) {
         throw new Error(`content/conseils.json : type de section inconnu « ${String(s?.type)} » dans ${c.slug} (attendu : ${TYPES_SECTION.join(', ')}).`);
+      }
+      // Les visuels sont calculés au rendu : on refuse ici une section sans
+      // données plutôt que de laisser échouer le gabarit en production.
+      if (TYPES_GRAPHIQUE.includes(s.type)) {
+        const ok = Array.isArray(s.elements) && s.elements.length
+          && s.elements.every((e) => e && typeof e.libelle === 'string' && e.libelle
+            && (s.type === 'chiffres' ? typeof e.valeur === 'string' && e.valeur : Number.isFinite(e.valeur) && e.valeur >= 0));
+        if (!ok) throw new Error(`content/conseils.json : section « ${s.type} » sans données exploitables dans ${c.slug} (attendu : elements[{ libelle, valeur }]).`);
       }
     }
     return Object.freeze({ ...c, sections: Object.freeze(c.sections.map((s) => Object.freeze({ ...s }))) });

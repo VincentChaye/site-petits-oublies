@@ -35,6 +35,33 @@ test.describe('navigation des fiches conseils', () => {
     await expect(page.getByRole('heading', { name: 'À retenir' })).toBeVisible();
   });
 
+  test('visuels : chiffres clés, barres et anneaux rendus sans JavaScript', async ({ page }) => {
+    await page.goto('/conseils/alimentation-du-chat');
+
+    // Chiffres clés : le nombre et son libellé sont du texte, pas une image.
+    const chiffres = page.locator('.g-chiffres > li');
+    await expect(chiffres).toHaveCount(3);
+    await expect(chiffres.first()).toContainText('10 000');
+
+    // Barres : la valeur est écrite à côté de la barre, et le repère est légendé.
+    const barres = page.locator('figure.graphique .g-barres > li');
+    await expect(barres.first().locator('.g-barre-val')).toHaveText('20 %');
+    await expect(page.locator('.g-repere-legende')).toContainText('Repère : 30 %');
+    // Échelle de 50 : 20 % occupe 40 % de la piste.
+    await expect(barres.first().locator('rect.g-barre')).toHaveAttribute('width', '40.00');
+
+    // Anneaux : une part par entrée de légende, chacune avec son libellé et sa valeur.
+    const anneaux = page.locator('figure.graphique-anneau');
+    await expect(anneaux).toHaveCount(2);
+    await expect(anneaux.first().locator('circle.g-anneau-part')).toHaveCount(4);
+    await expect(anneaux.last().locator('.g-legende > li')).toHaveCount(2);
+    await expect(anneaux.last()).toContainText('Pâtée (apport d’eau)');
+    await expect(anneaux.last()).toContainText('33 %');
+
+    // Chaque visuel porte un titre accessible repris du contenu de la fiche.
+    await expect(anneaux.last()).toHaveAttribute('aria-labelledby', /g\d+-titre/);
+  });
+
   test('données structurées Article et canonique de la fiche', async ({ page }) => {
     await page.goto('/conseils/alimentation-du-chat');
     const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
@@ -77,8 +104,11 @@ test.describe('calculateur du taux de glucides', () => {
 
   test('tous les champs sont atteignables au clavier et étiquetés', async ({ page }) => {
     await page.goto('/conseils/alimentation-du-chat');
+    // Recherche limitée au calculateur : les titres des visuels de la fiche
+    // nomment eux aussi des éléments (« Protéines animales : … »).
+    const calculateur = page.locator('#calculateur-glucides');
     for (const nom of [/Protéines/, /Matières grasses/, /Cendres/, /Cellulose/, /Humidité/]) {
-      const champ = page.getByLabel(nom);
+      const champ = calculateur.getByLabel(nom);
       await champ.focus();
       await expect(champ).toBeFocused();
     }
@@ -93,6 +123,9 @@ test.describe('calculateur du taux de glucides', () => {
       await expect(page.locator('#glu-proteines')).toBeHidden();
       // Le contenu de la fiche, lui, reste entièrement lisible.
       await expect(page.getByRole('heading', { name: /Problème 4/ })).toBeVisible();
+      // Les visuels sont calculés côté serveur : ils s'affichent sans JavaScript.
+      await expect(page.locator('.g-chiffres > li').first()).toBeVisible();
+      await expect(page.locator('figure.graphique-anneau svg').first()).toBeVisible();
     } finally {
       await contexte.close();
     }

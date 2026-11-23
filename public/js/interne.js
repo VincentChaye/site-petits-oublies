@@ -1,4 +1,7 @@
-/* Espace interne – confirmations et focus. Aucun JS inline ; sans ce script, tout reste utilisable. */
+/* Espace interne – confirmations avant une action destructrice.
+   Le menu repliable et le focus initial des messages viennent de main.js,
+   chargé par le même gabarit. Aucun JS inline ; sans ce script, tout reste
+   utilisable (la confirmation disparaît, l'action reste possible). */
 (function () {
   'use strict';
 
@@ -10,10 +13,5 @@
         }
       });
     });
-
-    var cible = document.querySelector('[data-focus-initial]');
-    if (cible) {
-      cible.focus();
-    }
   });
 }());

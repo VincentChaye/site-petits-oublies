@@ -34,11 +34,12 @@ function messagesContenu(erreurs, def) {
  *          maxEnvois?: number, fenetreEnvoisMs?: number}} deps
  *   maxEnvois / fenetreEnvoisMs : limitation de débit des envois de formulaire
  *   (10 par heure et par adresse en production ; relevé par les tests).
+ *   statique : rendu pour l'export statique (aucun envoi possible).
  * @returns {import('express').Router} Routeur.
  */
 export function createPublicRouter({
   contenu, soumissions, vues, baseUrl, secret, logger = console,
-  maxEnvois = 10, fenetreEnvoisMs = 3600 * 1000,
+  maxEnvois = 10, fenetreEnvoisMs = 3600 * 1000, statique = false,
 } = {}) {
   if (!contenu || !soumissions || !vues) throw new Error('createPublicRouter : contenu, soumissions et vues sont requis.');
   if (typeof secret !== 'string' || !secret) throw new Error('createPublicRouter : secret est requis.');
@@ -52,6 +53,8 @@ export function createPublicRouter({
     formulaires: contenu.formulaires,
     association: contenu.pages.association,
     rgpdCommun: contenu.formulaires._rgpd_commun,
+    // Export statique (GitHub Pages) : formulaires remplacés par les coordonnées.
+    statique,
   };
 
   /**

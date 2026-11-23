@@ -75,6 +75,24 @@ liste: À retenir
 - Premier point
 - Deuxième point</code></pre>
         <p>Une section <code>probleme</code> doit porter un titre, et son conseil commence par une ligne <code>Conseil :</code>. Aucun code HTML n’est accepté : tout est affiché tel quel.</p>
+        <p>Les trois visuels s’écrivent de la même façon : une donnée par ligne, <code>- libellé | valeur</code>.</p>
+        <pre><code>chiffres: L’alimentation en trois chiffres
+- repas dans une vie de chat | 10 000
+- chats touchés par l’obésité | 1 sur 3
+note : la valeur d’un chiffre clé est du texte libre.
+---
+barres: Protéines animales des croquettes
+unite : %
+max : 50
+repere : 30 | le minimum conseillé
+- Recettes les plus pauvres | 20
+- Recette conforme | 32
+---
+anneau: La ration d’une journée
+unite : %
+- Pâtée | 33
+- Croquettes | 67</code></pre>
+        <p>Au maximum 4 chiffres clés, 12 barres, 6 parts d’anneau. <code>unite</code>, <code>max</code>, <code>repere</code> et <code>note</code> sont facultatifs ; <code>max</code> fixe la largeur totale des barres et <code>repere</code> trace le trait en pointillés. Les parts d’un anneau sont dessinées au prorata de leur total.</p>
       </details>
       <div class="actions">
         <button type="submit" class="bouton">Enregistrer</button>

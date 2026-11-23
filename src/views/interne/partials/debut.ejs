@@ -22,18 +22,23 @@
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/interne.css">
+  <script src="/js/main.js" defer></script>
   <script src="/js/interne.js" defer></script>
 </head>
 <body class="interne">
   <a class="evitement" href="#contenu">Aller au contenu</a>
-  <div class="bandeau-interne" role="note" aria-label="Information">
-    <p>Espace réservé à l’équipe. Les publications réseaux sont <strong>simulées</strong> : rien n’est envoyé sur Facebook ou Instagram.</p>
-  </div>
   <header class="entete">
+    <div class="bandeau-interne">
+      <p>Espace réservé à l’équipe. Les publications réseaux sont <strong>simulées</strong> : rien n’est envoyé sur Facebook ou Instagram.</p>
+    </div>
     <div class="entete-interieur">
-      <span class="marque"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</span>
-<% if (!locals.sansMenu) { %>      <nav class="nav" aria-label="Navigation de l’espace interne">
-        <ul>
+      <div class="entete-barre">
+<% if (locals.sansMenu) { %>        <span class="marque"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</span>
+<% } else { %>        <a class="marque" href="/interne"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</a>
+        <button type="button" class="bouton-menu" hidden aria-expanded="false" aria-controls="menu-interne">Menu</button>
+<% } %>      </div>
+<% if (!locals.sansMenu) { %>      <nav class="nav" data-menu="899" aria-label="Navigation de l’espace interne">
+        <ul id="menu-interne">
 <% _menu.forEach(function (m) { %>          <li><a href="<%= m.url %>"<% if (locals.ecran === m.cle) { %> aria-current="page"<% } %>><%= m.nom %></a></li>
 <% }); %>          <li>
             <form method="post" action="/interne/deconnexion" class="form-deconnexion">

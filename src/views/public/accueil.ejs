@@ -14,7 +14,7 @@
       <h2 id="titre-vedettes">Ils attendent une famille</h2>
       <ul class="liste-animaux">
 <% vedettes.forEach(function (a) { %><%- include('partials/carte-animal', { a: a, niveau: 3 }) %><% }); %>      </ul>
-      <p><a href="/adopter">Voir tous les animaux à adopter</a></p>
+      <p><a class="lien-bloc" href="/adopter">Voir tous les animaux à adopter</a></p>
     </section>
 <% } %>    <div class="sections-accueil">
 <% page.sections.forEach(function (s) { %>      <section>

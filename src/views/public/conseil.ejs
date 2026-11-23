@@ -17,14 +17,69 @@
     author: { '@type': 'NGO', name: (locals.association && association.nom) || 'Les Petits Oubliés' }
   }];
   const _scripts = conseil.outil === 'glucides' ? ['/js/conseils.js'] : [];
+
+  /* Visuels (chiffres, barres, anneau). Tout est calculé ici et rendu en SVG
+     avec des attributs de géométrie : la CSP interdit `style` en ligne, donc
+     aucune largeur ne peut passer par un attribut `style`. Les couleurs
+     viennent de classes CSS (--serie-1..4), jamais d'attributs `fill`. */
+  const _nb = (n) => String(Math.round(n * 100) / 100).replace('.', ',');
+  const _val = (n, unite) => _nb(n) + (unite ? '\u00A0' + unite : '');
+  const _echelle = (s) => s.max ?? (Math.max(...s.elements.map((e) => e.valeur), s.repere ? s.repere.valeur : 0) || 1);
+  const _part = (n, total) => (total > 0 ? (n / total) * 100 : 0);
+  /* Anneau : rayon 15,9155 => circonférence 100, donc un `stroke-dasharray`
+     directement exprimé en pourcentage. Décalage 25 pour démarrer à midi. */
+  const _arc = (part) => Math.max(part - 1.2, 0.4).toFixed(2) + ' ' + (100 - Math.max(part - 1.2, 0.4)).toFixed(2);
 %><%- include('partials/debut', { page: _page, actif: 'conseils', fil: _fil, ld: _ld, scripts: _scripts }) %>
     <article class="texte-page">
       <h1><%= conseil.titre %></h1>
 <% if (conseil.resume) { %>      <p class="intro"><%= conseil.resume %></p>
-<% } %><% conseil.sections.forEach(function (s) { %><% if (s.type === 'saviez_vous') { %>      <aside class="saviez-vous">
+<% } %><% conseil.sections.forEach(function (s, _i) { %><% if (s.type === 'saviez_vous') { %>      <aside class="saviez-vous">
         <h2><%= s.titre || 'Le saviez-vous ?' %></h2>
         <p><%= s.texte %></p>
       </aside>
+<% } else if (s.type === 'chiffres') { %>      <figure class="graphique" aria-labelledby="g<%= _i %>-titre">
+        <figcaption class="graphique-titre" id="g<%= _i %>-titre"><%= s.titre || 'Chiffres clés' %></figcaption>
+        <ul class="g-chiffres">
+<% s.elements.forEach(function (e) { %>          <li>
+            <span class="g-chiffre"><%= e.valeur %></span>
+            <span class="g-chiffre-lib"><%= e.libelle %></span>
+          </li>
+<% }); %>        </ul>
+<% if (s.note) { %>        <p class="graphique-note"><%= s.note %></p>
+<% } %>      </figure>
+<% } else if (s.type === 'barres') { %><% const _e = _echelle(s); %>      <figure class="graphique" aria-labelledby="g<%= _i %>-titre">
+        <figcaption class="graphique-titre" id="g<%= _i %>-titre"><%= s.titre || 'Graphique' %></figcaption>
+        <ul class="g-barres">
+<% s.elements.forEach(function (e) { %>          <li>
+            <span class="g-barre-lib"><%= e.libelle %></span>
+            <svg class="g-piste" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+              <rect class="g-piste-fond" x="0" y="0" width="100" height="12" />
+              <rect class="g-barre g-serie-1" x="0" y="0" width="<%= _part(e.valeur, _e).toFixed(2) %>" height="12" />
+<% if (s.repere) { %>              <line class="g-repere-trait" x1="<%= _part(s.repere.valeur, _e).toFixed(2) %>" y1="0" x2="<%= _part(s.repere.valeur, _e).toFixed(2) %>" y2="12" vector-effect="non-scaling-stroke" />
+<% } %>            </svg>
+            <span class="g-barre-val"><%= _val(e.valeur, s.unite) %></span>
+          </li>
+<% }); %>        </ul>
+<% if (s.repere) { %>        <p class="g-repere-legende"><span class="g-puce-repere" aria-hidden="true"></span>Repère : <%= _val(s.repere.valeur, s.unite) %><%= s.repere.libelle ? ' — ' + s.repere.libelle : '' %></p>
+<% } %><% if (s.note) { %>        <p class="graphique-note"><%= s.note %></p>
+<% } %>      </figure>
+<% } else if (s.type === 'anneau') { %><% const _total = s.elements.reduce(function (t, e) { return t + e.valeur; }, 0); let _depart = 0; %>      <figure class="graphique graphique-anneau" aria-labelledby="g<%= _i %>-titre">
+        <figcaption class="graphique-titre" id="g<%= _i %>-titre"><%= s.titre || 'Graphique' %></figcaption>
+        <div class="g-anneau-bloc">
+          <svg class="g-anneau" viewBox="0 0 42 42" aria-hidden="true" focusable="false">
+            <circle class="g-anneau-fond" cx="21" cy="21" r="15.9155" />
+<% s.elements.forEach(function (e, _j) { %><% const _p = _part(e.valeur, _total); const _o = (25 - _depart).toFixed(2); _depart += _p; %>            <circle class="g-anneau-part g-serie-<%= (_j % 4) + 1 %>" cx="21" cy="21" r="15.9155" stroke-dasharray="<%= _arc(_p) %>" stroke-dashoffset="<%= _o %>" />
+<% }); %>          </svg>
+          <ul class="g-legende">
+<% s.elements.forEach(function (e, _j) { %>            <li>
+              <span class="g-puce g-serie-<%= (_j % 4) + 1 %>" aria-hidden="true"></span>
+              <span class="g-legende-lib"><%= e.libelle %></span>
+              <span class="g-legende-val"><%= _val(e.valeur, s.unite) %></span>
+            </li>
+<% }); %>          </ul>
+        </div>
+<% if (s.note) { %>        <p class="graphique-note"><%= s.note %></p>
+<% } %>      </figure>
 <% } else if (s.type === 'conseil') { %>      <div class="conseil-bloc">
         <h2><%= s.titre || 'Conseil' %></h2>
         <p><%= s.texte %></p>
@@ -74,7 +129,7 @@
           <p class="calculateur-resultat" id="glu-resultat" role="status" aria-live="polite">Renseignez les cinq valeurs pour obtenir le taux de glucides.</p>
         </div>
       </section>
-<% } %>      <p><a href="/conseils">Retour aux fiches conseils</a></p>
+<% } %>      <p><a class="lien-bloc" href="/conseils">Retour aux fiches conseils</a></p>
       <p>Ces repères ne remplacent pas l’avis de votre vétérinaire, seul à connaître votre animal.</p>
     </article>
 <%- include('partials/fin') %>
