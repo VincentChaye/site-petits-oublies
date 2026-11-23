@@ -178,6 +178,10 @@
 
   /* Export statique : formulaire affiché mais sans serveur pour le traiter. */
   Array.prototype.forEach.call(document.querySelectorAll('form[data-sans-envoi]'), function (f) {
-    f.addEventListener('submit', function (e) { e.preventDefault(); });
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      // Démo de connexion : rien n'est vérifié, on ouvre la page cible.
+      if (f.hasAttribute('data-redirige')) { window.location.href = f.action; }
+    });
   });
 }());

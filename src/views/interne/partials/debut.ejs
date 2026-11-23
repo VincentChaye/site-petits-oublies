@@ -12,6 +12,10 @@
     { cle: 'calendrier', nom: 'Calendrier', url: '/interne/calendrier' },
     { cle: 'journal', nom: 'Journal', url: '/interne/journal' }
   ];
+  /* Export statique (démo GitHub Pages) : seul l'atelier existe, sans déconnexion. */
+  const _menuAffiche = locals.statique
+    ? [{ cle: 'atelier', nom: 'Atelier réseaux', url: '/interne/atelier' }, { cle: 'site', nom: 'Retour au site', url: '/' }]
+    : _menu;
 %><!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -29,24 +33,26 @@
   <a class="evitement" href="#contenu">Aller au contenu</a>
   <header class="entete">
     <div class="bandeau-interne">
-      <p>Espace réservé à l’équipe. Les publications réseaux sont <strong>simulées</strong> : rien n’est envoyé sur Facebook ou Instagram.</p>
+      <% if (locals.statique) { %><p>Démonstration en ligne : l’atelier fonctionne dans votre navigateur, <strong>rien n’est enregistré ni envoyé</strong> sur Facebook ou Instagram.</p>
+<% } else { %><p>Espace réservé à l’équipe. Les publications réseaux sont <strong>simulées</strong> : rien n’est envoyé sur Facebook ou Instagram.</p>
+<% } %>
     </div>
     <div class="entete-interieur">
       <div class="entete-barre">
 <% if (locals.sansMenu) { %>        <span class="marque"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</span>
-<% } else { %>        <a class="marque" href="/interne"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</a>
+<% } else { %>        <a class="marque" href="<%= locals.statique ? '/' : '/interne' %>"><img src="/img/marque/logo.svg" alt="" width="320" height="56"> <span class="contenu-cache">Les Petits Oubliés – </span>Espace interne</a>
         <button type="button" class="bouton-menu" hidden aria-expanded="false" aria-controls="menu-interne">Menu</button>
 <% } %>      </div>
 <% if (!locals.sansMenu) { %>      <nav class="nav" data-menu="899" aria-label="Navigation de l’espace interne">
         <ul id="menu-interne">
-<% _menu.forEach(function (m) { %>          <li><a href="<%= m.url %>"<% if (locals.ecran === m.cle) { %> aria-current="page"<% } %>><%= m.nom %></a></li>
-<% }); %>          <li>
+<% _menuAffiche.forEach(function (m) { %>          <li><a href="<%= m.url %>"<% if (locals.ecran === m.cle) { %> aria-current="page"<% } %>><%= m.nom %></a></li>
+<% }); %><% if (!locals.statique) { %>          <li>
             <form method="post" action="/interne/deconnexion" class="form-deconnexion">
 <% if (locals.csrfToken) { %>              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 <% } %>              <button type="submit" class="bouton bouton-secondaire">Se déconnecter</button>
             </form>
           </li>
-        </ul>
+<% } %>        </ul>
       </nav>
 <% } %>    </div>
   </header>

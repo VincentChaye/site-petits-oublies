@@ -1,14 +1,15 @@
 <%
   /* Route : GET /interne/connexion (affichage), POST /interne/connexion (champ « secret »).
      Variables : erreur (string|null), csrfToken (facultatif),
-     statique (export GitHub Pages : le formulaire ne déclenche rien). */
+     statique (export GitHub Pages : démo, l'envoi mène directement à l'atelier, sans vérifier le secret). */
 %><%- include('partials/debut', { titre: 'Connexion', sansMenu: true }) %>
     <h1>Connexion à l’espace interne</h1>
-    <p class="intro">Saisissez le secret partagé de l’équipe. Un cookie de session est déposé uniquement sur l’espace interne.</p>
+<% if (locals.statique) { %>    <p class="alerte" role="note">Démonstration en ligne : n’importe quel secret ouvre l’<a href="/interne/atelier">atelier Instagram / Facebook</a>. Aucune donnée réelle n’est accessible.</p>
+<% } %>    <p class="intro">Saisissez le secret partagé de l’équipe. Un cookie de session est déposé uniquement sur l’espace interne.</p>
 <% if (locals.erreur) { %>    <div class="resume-erreurs" role="alert" tabindex="-1" data-focus-initial>
       <p><%= erreur %></p>
     </div>
-<% } %>    <form class="formulaire" method="post" action="/interne/connexion"<%= locals.statique ? ' data-sans-envoi' : '' %>>
+<% } %>    <form class="formulaire" method="post" action="<%= locals.statique ? '/interne/atelier' : '/interne/connexion' %>"<%= locals.statique ? ' data-sans-envoi data-redirige' : '' %>>
 <% if (locals.csrfToken) { %>      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
 <% } %>      <div class="champ<%= locals.erreur ? ' champ-erreur' : '' %>">
         <label for="secret">Secret</label>
